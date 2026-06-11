@@ -47,7 +47,14 @@ const eventHighlights: Array<[string, LucideIcon]> = [
   ["Capacidade limitada", Users]
 ];
 
-const galleryItems = [
+type GalleryItem = {
+  type: "photo" | "video";
+  src: string;
+  title: string;
+  poster?: string;
+};
+
+const galleryItems: GalleryItem[] = [
   { type: "photo", src: "/assets/hero-concert.jpg", title: "Noite de música e propósito" },
   { type: "photo", src: "/assets/experience.jpg", title: "Experiência musical intimista" },
   { type: "photo", src: "/assets/cause.jpg", title: "Impacto social" },
@@ -198,7 +205,7 @@ function SponsorForm() {
 }
 
 function Gallery() {
-  const [active, setActive] = useState<(typeof galleryItems)[number] | null>(null);
+  const [active, setActive] = useState<GalleryItem | null>(null);
 
   return (
     <>

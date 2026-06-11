@@ -14,7 +14,7 @@ const emptySponsor = {
   slogan: "",
   logo_url: "",
   url: "",
-  tier: "colaborador" as const
+  tier: "colaborador" as "master" | "colaborador"
 };
 
 export function AdminPanel() {
