@@ -24,10 +24,10 @@ export const site = {
     city: "São Paulo"
   },
   assets: {
-    hero: "/assets/hero-concert.jpg",
-    causeHero: "/assets/cause.jpg",
-    experienceHero: "/assets/experience.jpg",
-    venue: "/assets/venue.jpg",
+    hero: "/assets/hero-band-stage.jpg",
+    causeHero: "/assets/social-cause-2.jpeg",
+    experienceHero: "/assets/hero-singer.png",
+    venue: "/assets/place-1.jpeg",
     logoPlaceholder: "/assets/logo-placeholder.jpg"
   }
 };

@@ -37,8 +37,19 @@ const navItems = [
   { label: "Local", href: "#local" }
 ];
 
-const causeImages = ["/assets/cause-1.jpg", "/assets/cause-2.jpg", "/assets/cause-3.jpg", "/assets/cause-4.jpg"];
-const experienceImages = ["/assets/exp-1.jpg", "/assets/exp-2.jpg", "/assets/exp-3.jpg", "/assets/exp-4.jpg"];
+const causeImages = [
+  "/assets/social-cause-1.jpeg",
+  "/assets/social-cause-2.jpeg",
+  "/assets/social-cause-3.jpeg",
+  "/assets/social-cause-4.jpeg"
+];
+const experienceImages = [
+  "/assets/hero-singer.png",
+  "/assets/hero-musician-1.png",
+  "/assets/guest-rodolfo.jpeg",
+  "/assets/hero-musician-5.png"
+];
+const placeImages = ["/assets/place-1.jpeg", "/assets/place-2.png", "/assets/place-3.png"];
 
 const eventHighlights: Array<[string, LucideIcon]> = [
   ["Tributo à Banda Catedral", Music2],
@@ -55,12 +66,15 @@ type GalleryItem = {
 };
 
 const galleryItems: GalleryItem[] = [
-  { type: "photo", src: "/assets/hero-concert.jpg", title: "Noite de música e propósito" },
-  { type: "photo", src: "/assets/experience.jpg", title: "Experiência musical intimista" },
-  { type: "photo", src: "/assets/cause.jpg", title: "Impacto social" },
-  { type: "photo", src: "/assets/venue.jpg", title: "Dissenso Lounge" },
-  { type: "photo", src: "/assets/exp-1.jpg", title: "Banda cover" },
-  { type: "photo", src: "/assets/cause-3.jpg", title: "Arrecadação solidária" }
+  { type: "photo", src: "/assets/hero-band-stage.jpg", title: "Banda no palco do evento" },
+  { type: "photo", src: "/assets/hero-singer.png", title: "Voz principal" },
+  { type: "photo", src: "/assets/guest-rodolfo.jpeg", title: "Participação especial" },
+  { type: "photo", src: "/assets/hero-musician-1.png", title: "Bateria" },
+  { type: "photo", src: "/assets/place-1.jpeg", title: "Dissenso Lounge" },
+  { type: "photo", src: "/assets/place-2.png", title: "Estrutura do palco" },
+  { type: "photo", src: "/assets/social-cause-2.jpeg", title: "Arrecadação de alimentos" },
+  { type: "photo", src: "/assets/social-cause-1.jpeg", title: "Entrega das cestas" },
+  { type: "video", src: "/assets/studio.mp4", poster: "/assets/place-1.jpeg", title: "Vídeo do espaço" }
 ];
 
 const tickets = [
@@ -511,8 +525,19 @@ export function HomePage() {
               />
             </div>
           </div>
-          <div className="overflow-hidden rounded-lg bg-ink">
-            <Image src={site.assets.venue} alt="Dissenso Lounge" width={1200} height={900} className="h-full min-h-[420px] w-full object-cover" />
+          <div className="grid gap-4">
+            <div className="overflow-hidden rounded-lg bg-ink">
+              <video controls poster="/assets/place-1.jpeg" className="h-full min-h-[320px] w-full object-cover">
+                <source src="/assets/studio.mp4" type="video/mp4" />
+              </video>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {placeImages.map((image, index) => (
+                <div key={image} className="relative min-h-32 overflow-hidden rounded-lg bg-ink sm:min-h-40">
+                  <Image src={image} alt={`Dissenso Lounge ${index + 1}`} fill className="object-cover" sizes="(max-width: 768px) 33vw, 18vw" />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
