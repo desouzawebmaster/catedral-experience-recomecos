@@ -1,0 +1,28 @@
+[
+  {
+    "id": "placeholder-master",
+    "name": "Sua marca aqui",
+    "slogan": "Associe sua empresa a uma noite de impacto social.",
+    "logo": "/assets/logo-placeholder.jpg",
+    "url": "#patrocinios",
+    "instagram": "",
+    "facebook": "",
+    "whatsapp": "",
+    "tier": "master",
+    "active": true,
+    "position": 1
+  },
+  {
+    "id": "placeholder-parceiro",
+    "name": "Patrocinador Parceiro",
+    "slogan": "Visibilidade com proposito para empresas locais.",
+    "logo": "/assets/logo-placeholder.jpg",
+    "url": "#patrocinios",
+    "instagram": "",
+    "facebook": "",
+    "whatsapp": "",
+    "tier": "parceiro",
+    "active": true,
+    "position": 2
+  }
+]

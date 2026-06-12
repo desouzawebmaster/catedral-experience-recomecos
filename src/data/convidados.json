@@ -1,0 +1,11 @@
+[
+  {
+    "id": "rodolfo-lauber",
+    "name": "Rodolfo Lauber",
+    "description": "Rodolfo Lauber e cantor e compositor da Banda Apogeu.",
+    "image": "/assets/guest-rodolfo-lauber.jpeg",
+    "alt": "Rodolfo Lauber cantando no palco",
+    "active": true,
+    "position": 1
+  }
+]

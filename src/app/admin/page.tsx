@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AdminPanel } from "@/components/AdminPanel";
 
 export const metadata: Metadata = {
-  title: "Administração de patrocinadores",
+  title: "CMS local | Catedral Experience",
   robots: {
     index: false,
     follow: false

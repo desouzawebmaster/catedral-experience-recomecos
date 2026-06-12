@@ -1,39 +1,72 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useEffect, useState } from "react";
-import { Edit3, LogOut, Plus, Save, ShieldCheck, Trash2, X } from "lucide-react";
-import { fallbackSponsors, type Sponsor } from "@/lib/sponsors";
+import { useEffect, useMemo, useState } from "react";
+import type { ChangeEvent, DragEvent, FormEvent, ReactNode } from "react";
+import { Edit3, GripVertical, ImagePlus, LogOut, Plus, Save, ShieldCheck, Trash2 } from "lucide-react";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
-import { site } from "@/lib/site";
-import { defaultImageSlots, type SiteImageSlot } from "@/lib/media";
+import { ordered, type CmsSection, type GalleryMedia, type Guest, type Musician, type Sponsor } from "@/lib/cms";
+import musiciansSeed from "@/data/musicos.json";
+import guestsSeed from "@/data/convidados.json";
+import gallerySeed from "@/data/galeria.json";
+import sponsorsSeed from "@/data/patrocinadores.json";
 
 type AuthState = "loading" | "signed-out" | "signed-in";
+type Tab = CmsSection;
+
 const adminEmail = "desouza.webmaster@gmail.com";
 
-const emptySponsor = {
-  name: "",
-  slogan: "",
-  logo_url: "",
-  url: "",
-  tier: "colaborador" as "master" | "colaborador"
-};
+const tabs: Array<{ id: Tab; label: string }> = [
+  { id: "musicos", label: "Musicos" },
+  { id: "convidados", label: "Convidados" },
+  { id: "galeria", label: "Galeria" },
+  { id: "patrocinadores", label: "Patrocinadores" }
+];
+
+function newId(prefix: string) {
+  return `${prefix}-${Date.now()}`;
+}
+
+function withPositions<T extends { position: number }>(items: T[]) {
+  return items.map((item, index) => ({ ...item, position: index + 1 }));
+}
+
+function moveItem<T>(items: T[], from: number, to: number) {
+  const copy = [...items];
+  const [removed] = copy.splice(from, 1);
+  copy.splice(to, 0, removed);
+  return copy;
+}
+
+function imagePreview(src: string, alt: string) {
+  if (!src) return <div className="flex h-24 w-24 items-center justify-center rounded-md bg-paper text-xs font-bold text-ink/50">Sem foto</div>;
+
+  return (
+    <div className="relative h-24 w-24 overflow-hidden rounded-md bg-paper">
+      <Image src={src} alt={alt || "Preview"} fill className="object-cover object-top" sizes="96px" />
+    </div>
+  );
+}
 
 export function AdminPanel() {
   const [authState, setAuthState] = useState<AuthState>("loading");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-  const [sponsors, setSponsors] = useState<Sponsor[]>(fallbackSponsors);
-  const [form, setForm] = useState(emptySponsor);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [imageSlots, setImageSlots] = useState<SiteImageSlot[]>(defaultImageSlots);
+  const [tab, setTab] = useState<Tab>("musicos");
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  const [musicians, setMusicians] = useState<Musician[]>(ordered(musiciansSeed as Musician[]));
+  const [guests, setGuests] = useState<Guest[]>(ordered(guestsSeed as Guest[]));
+  const [gallery, setGallery] = useState<GalleryMedia[]>(ordered(gallerySeed as GalleryMedia[]));
+  const [sponsors, setSponsors] = useState<Sponsor[]>(ordered(sponsorsSeed as Sponsor[]));
+
   const supabaseReady = isSupabaseConfigured;
 
   useEffect(() => {
     if (!supabaseReady) {
       setAuthState("signed-out");
-      setMessage("Configure as variáveis do Supabase para ativar login e edição.");
+      setMessage("Configure as variaveis do Supabase para ativar login no admin.");
       return;
     }
 
@@ -41,39 +74,104 @@ export function AdminPanel() {
     supabase.auth.getSession().then(({ data }) => {
       const isAdmin = data.session?.user.email === adminEmail;
       setAuthState(isAdmin ? "signed-in" : "signed-out");
-      if (data.session && !isAdmin) setMessage("Este acesso é exclusivo do administrador do site.");
+      if (data.session && !isAdmin) setMessage("Este acesso e exclusivo do administrador do site.");
     });
+
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       const isAdmin = session?.user.email === adminEmail;
       setAuthState(isAdmin ? "signed-in" : "signed-out");
-      if (session && !isAdmin) setMessage("Este acesso é exclusivo do administrador do site.");
+      if (session && !isAdmin) setMessage("Este acesso e exclusivo do administrador do site.");
     });
 
     return () => listener.subscription.unsubscribe();
   }, [supabaseReady]);
 
   useEffect(() => {
-    if (authState !== "signed-in" || !supabaseReady) return;
+    if (authState !== "signed-in") return;
 
-    getSupabaseClient()
-      .from("sponsors")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (error) setMessage(error.message);
-        if (data) setSponsors(data as Sponsor[]);
-      });
+    (async () => {
+      await Promise.all([
+        loadSection("musicos", setMusicians),
+        loadSection("convidados", setGuests),
+        loadSection("galeria", setGallery),
+        loadSection("patrocinadores", setSponsors)
+      ]);
+    })();
+  }, [authState]);
 
-    getSupabaseClient()
-      .from("site_images")
-      .select("*")
-      .order("position", { ascending: true })
-      .then(({ data }) => {
-        if (data?.length) {
-          setImageSlots(defaultImageSlots.map((slot) => (data as SiteImageSlot[]).find((item) => item.key === slot.key) ?? slot));
-        }
-      });
-  }, [authState, supabaseReady]);
+  const stats = useMemo(() => {
+    const master = sponsors.filter((sponsor) => sponsor.active && sponsor.tier === "master").length;
+    const parceiros = sponsors.filter((sponsor) => sponsor.active && sponsor.tier === "parceiro").length;
+    return { master, parceiros };
+  }, [sponsors]);
+
+  async function getToken() {
+    const { data } = await getSupabaseClient().auth.getSession();
+    return data.session?.access_token;
+  }
+
+  async function loadSection<T>(section: CmsSection, setter: (items: T[]) => void) {
+    const response = await fetch(`/api/cms/${section}`, { cache: "no-store" });
+    if (!response.ok) return;
+    setter(ordered((await response.json()) as Array<T & { position: number }>) as T[]);
+  }
+
+  async function saveSection(section: CmsSection, items: unknown[]) {
+    if (!supabaseReady) return;
+    const token = await getToken();
+
+    if (section === "patrocinadores") {
+      const current = items as Sponsor[];
+      const masterCount = current.filter((sponsor) => sponsor.active && sponsor.tier === "master").length;
+      const partnerCount = current.filter((sponsor) => sponsor.active && sponsor.tier === "parceiro").length;
+      if (masterCount > 1) {
+        setMessage("So pode existir 1 Patrocinador Master ativo.");
+        return;
+      }
+      if (partnerCount > 8) {
+        setMessage("So podem existir ate 8 Patrocinadores Parceiros ativos.");
+        return;
+      }
+    }
+
+    const response = await fetch(`/api/cms/${section}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(withPositions(items as Array<{ position: number }>))
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setMessage(result.error || "Nao foi possivel salvar.");
+      return;
+    }
+
+    setMessage("Alteracoes salvas no JSON local do projeto.");
+  }
+
+  async function upload(section: CmsSection, file: File) {
+    const token = await getToken();
+    const body = new FormData();
+    body.append("file", file);
+
+    const response = await fetch(`/api/uploads/${section}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setMessage(result.error || "Nao foi possivel enviar o arquivo.");
+      return "";
+    }
+
+    setMessage("Upload enviado. Clique em salvar para gravar o JSON.");
+    return result.url as string;
+  }
 
   async function signIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -84,11 +182,13 @@ export function AdminPanel() {
       setMessage(error.message);
       return;
     }
+
     if (email.trim().toLowerCase() !== adminEmail) {
       await getSupabaseClient().auth.signOut();
-      setMessage("Este acesso é exclusivo do administrador do site.");
+      setMessage("Este acesso e exclusivo do administrador do site.");
       return;
     }
+
     setMessage("Login realizado.");
   }
 
@@ -97,97 +197,45 @@ export function AdminPanel() {
     await getSupabaseClient().auth.signOut();
   }
 
-  async function saveSponsor(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!supabaseReady) return;
-
-    const payload = {
-      name: form.name,
-      slogan: form.slogan,
-      logo_url: form.logo_url,
-      url: form.url,
-      tier: form.tier
+  function dragHandlers<T extends { position: number }>(items: T[], setter: (items: T[]) => void, index: number) {
+    return {
+      draggable: true,
+      onDragStart: () => setDragIndex(index),
+      onDragOver: (event: DragEvent) => event.preventDefault(),
+      onDrop: () => {
+        if (dragIndex === null || dragIndex === index) return;
+        setter(withPositions(moveItem(items, dragIndex, index)));
+        setDragIndex(null);
+      }
     };
-
-    const query = editingId
-      ? getSupabaseClient().from("sponsors").update(payload).eq("id", editingId)
-      : getSupabaseClient().from("sponsors").insert(payload);
-
-    const { data, error } = await query.select().single();
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    setSponsors((current) =>
-      editingId ? current.map((sponsor) => (sponsor.id === editingId ? (data as Sponsor) : sponsor)) : [data as Sponsor, ...current]
-    );
-    setForm(emptySponsor);
-    setEditingId(null);
-    setMessage(editingId ? "Patrocinador atualizado." : "Patrocinador cadastrado.");
-  }
-
-  function startEditing(sponsor: Sponsor) {
-    setEditingId(sponsor.id);
-    setForm({
-      name: sponsor.name,
-      slogan: sponsor.slogan,
-      logo_url: sponsor.logo_url,
-      url: sponsor.url || "",
-      tier: sponsor.tier || "colaborador"
-    });
-  }
-
-  function cancelEditing() {
-    setEditingId(null);
-    setForm(emptySponsor);
-  }
-
-  async function deleteSponsor(id: string) {
-    if (!supabaseReady) return;
-    const { error } = await getSupabaseClient().from("sponsors").delete().eq("id", id);
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    setSponsors((current) => current.filter((sponsor) => sponsor.id !== id));
-    setMessage("Patrocinador removido.");
-  }
-
-  async function saveImageSlot(slot: SiteImageSlot) {
-    if (!supabaseReady) return;
-
-    const { error } = await getSupabaseClient().from("site_images").upsert(slot, { onConflict: "key" });
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    setMessage("Imagem atualizada.");
-  }
-
-  function updateImageSlot(key: string, field: "image_url" | "alt", value: string) {
-    setImageSlots((current) => current.map((slot) => (slot.key === key ? { ...slot, [field]: value } : slot)));
   }
 
   return (
     <main className="min-h-screen bg-paper px-4 py-8 text-ink sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-6xl">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="mb-2 flex items-center gap-2 text-sm font-black uppercase tracking-[0.22em] text-ember">
               <ShieldCheck size={18} />
-              Administração
+              Administracao
             </p>
-            <h1 className="text-3xl font-black sm:text-5xl">Site e patrocinadores</h1>
+            <h1 className="text-3xl font-black sm:text-5xl">CMS local do site</h1>
           </div>
-          <a href="/" className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-5 py-3 font-black text-white">
-            Voltar ao site
-          </a>
+          <div className="flex flex-wrap gap-3">
+            {authState === "signed-in" ? (
+              <button onClick={signOut} type="button" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-ink/15 px-5 py-3 font-black text-ink">
+                <LogOut size={18} />
+                Sair
+              </button>
+            ) : null}
+            <a href="/" className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-5 py-3 font-black text-white">
+              Voltar ao site
+            </a>
+          </div>
+        </div>
+
+        <div className="mb-5 rounded-md border border-amber-300 bg-amber-50 p-4 text-sm font-bold leading-6 text-ink/75">
+          Este CMS salva arquivos JSON e uploads dentro do projeto. Localmente isso funciona como persistencia no repositorio. Na Vercel, arquivos enviados em producao nao sao persistentes entre deploys; a estrutura esta pronta para futura migracao para Supabase Storage ou outro storage externo.
         </div>
 
         {message ? <p className="mb-5 rounded-md border border-ember/20 bg-white p-4 font-bold text-ink/75">{message}</p> : null}
@@ -208,111 +256,164 @@ export function AdminPanel() {
           </form>
         ) : (
           <div className="grid gap-6">
-            <section className="rounded-lg bg-white p-6 shadow-lg">
-              <h2 className="mb-5 text-2xl font-black">Fotos do site</h2>
-              <div className="grid gap-4">
-                {imageSlots.map((slot) => (
-                  <div key={slot.key} className="grid gap-4 rounded-lg border border-ink/10 bg-paper p-4 lg:grid-cols-[120px_1fr_auto] lg:items-center">
-                    <div className="relative h-28 overflow-hidden rounded-md bg-ink">
-                      <Image src={slot.image_url} alt={slot.alt} fill className="object-cover object-top" sizes="120px" />
+            <div className="flex flex-wrap gap-2">
+              {tabs.map((item) => (
+                <button key={item.id} onClick={() => setTab(item.id)} type="button" className={`rounded-md px-4 py-3 font-black ${tab === item.id ? "bg-ember text-white" : "bg-white text-ink"}`}>
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            {tab === "musicos" ? (
+              <CmsBlock title="Musicos" onAdd={() => setMusicians((current) => withPositions([...current, { id: newId("musico"), name: "Novo musico", role: "", image: "", alt: "", active: true, position: current.length + 1 }]))} onSave={() => saveSection("musicos", musicians)}>
+                {musicians.map((item, index) => (
+                  <div key={item.id} {...dragHandlers(musicians, setMusicians, index)} className="grid gap-4 rounded-lg border border-ink/10 bg-white p-4 lg:grid-cols-[32px_96px_1fr_auto] lg:items-center">
+                    <GripVertical className="cursor-grab text-ink/35" />
+                    {imagePreview(item.image, item.alt)}
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <TextInput label="Nome" value={item.name} onChange={(value) => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, name: value } : row)))} />
+                      <TextInput label="Funcao" value={item.role} onChange={(value) => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, role: value } : row)))} />
+                      <TextInput label="Imagem" value={item.image} onChange={(value) => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, image: value } : row)))} />
+                      <TextInput label="Alt" value={item.alt} onChange={(value) => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, alt: value } : row)))} />
                     </div>
-                    <div className="grid gap-3">
-                      <p className="font-black">{slot.label}</p>
-                      <input
-                        value={slot.image_url}
-                        onChange={(event) => updateImageSlot(slot.key, "image_url", event.target.value)}
-                        className="w-full rounded-md border border-ink/15 bg-white px-4 py-3"
-                        placeholder="/assets/nome-da-imagem.jpg"
-                      />
-                      <input
-                        value={slot.alt}
-                        onChange={(event) => updateImageSlot(slot.key, "alt", event.target.value)}
-                        className="w-full rounded-md border border-ink/15 bg-white px-4 py-3"
-                        placeholder="Texto alternativo"
-                      />
-                    </div>
-                    <button onClick={() => saveImageSlot(slot)} type="button" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-ember px-4 py-2 font-black text-white">
-                      <Save size={18} />
-                      Salvar
-                    </button>
+                    <RowActions active={item.active} onToggle={() => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, active: !row.active } : row)))} onUpload={(event) => uploadAndSet(event, "musicos", (url) => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, image: url } : row))))} onDelete={() => setMusicians((items) => withPositions(items.filter((row) => row.id !== item.id)))} />
                   </div>
                 ))}
-              </div>
-            </section>
+              </CmsBlock>
+            ) : null}
 
-            <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-            <form onSubmit={saveSponsor} className="rounded-lg bg-white p-6 shadow-lg">
-              <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-2xl font-black">{editingId ? "Editar" : "Cadastrar"}</h2>
-                {editingId ? <Edit3 className="text-ember" /> : <Plus className="text-ember" />}
-              </div>
-              {[
-                ["Nome", "name"],
-                ["Slogan", "slogan"],
-                ["Logo", "logo_url"],
-                ["URL", "url"]
-              ].map(([label, key]) => (
-                <label key={key} className="mb-4 block text-sm font-bold">
-                  {label}
-                  <input
-                    value={form[key as keyof typeof form]}
-                    onChange={(event) => setForm((current) => ({ ...current, [key]: event.target.value }))}
-                    required={key !== "url"}
-                    className="mt-2 w-full rounded-md border border-ink/15 bg-paper px-4 py-3"
-                  />
-                </label>
-              ))}
-              <label className="mb-5 block text-sm font-bold">
-                Cota
-                <select value={form.tier} onChange={(event) => setForm((current) => ({ ...current, tier: event.target.value as "master" | "colaborador" }))} className="mt-2 w-full rounded-md border border-ink/15 bg-paper px-4 py-3">
-                  <option value="master">Patrocinador Master</option>
-                  <option value="colaborador">Patrocinador Colaborador</option>
-                </select>
-              </label>
-              <button className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-ember px-5 py-3 font-black text-white" type="submit">
-                <Save size={18} />
-                {editingId ? "Salvar alterações" : "Salvar patrocinador"}
-              </button>
-              {editingId ? (
-                <button onClick={cancelEditing} type="button" className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-ink/15 px-5 py-3 font-black text-ink">
-                  <X size={18} />
-                  Cancelar edição
-                </button>
-              ) : null}
-              <button onClick={signOut} type="button" className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-ink/15 px-5 py-3 font-black text-ink">
-                <LogOut size={18} />
-                Sair
-              </button>
-            </form>
+            {tab === "convidados" ? (
+              <CmsBlock title="Convidados Especiais" onAdd={() => setGuests((current) => withPositions([...current, { id: newId("convidado"), name: "Novo convidado", description: "", image: "", alt: "", active: true, position: current.length + 1 }]))} onSave={() => saveSection("convidados", guests)}>
+                {guests.map((item, index) => (
+                  <div key={item.id} {...dragHandlers(guests, setGuests, index)} className="grid gap-4 rounded-lg border border-ink/10 bg-white p-4 lg:grid-cols-[32px_96px_1fr_auto] lg:items-center">
+                    <GripVertical className="cursor-grab text-ink/35" />
+                    {imagePreview(item.image, item.alt)}
+                    <div className="grid gap-3">
+                      <TextInput label="Nome" value={item.name} onChange={(value) => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, name: value } : row)))} />
+                      <TextInput label="Descricao" value={item.description} onChange={(value) => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, description: value } : row)))} />
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <TextInput label="Foto" value={item.image} onChange={(value) => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, image: value } : row)))} />
+                        <TextInput label="Alt" value={item.alt} onChange={(value) => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, alt: value } : row)))} />
+                      </div>
+                    </div>
+                    <RowActions active={item.active} onToggle={() => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, active: !row.active } : row)))} onUpload={(event) => uploadAndSet(event, "convidados", (url) => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, image: url } : row))))} onDelete={() => setGuests((items) => withPositions(items.filter((row) => row.id !== item.id)))} />
+                  </div>
+                ))}
+              </CmsBlock>
+            ) : null}
 
-            <div className="grid gap-4">
-              {sponsors.map((sponsor) => (
-                <div key={sponsor.id} className="grid gap-4 rounded-lg bg-white p-4 shadow-sm sm:grid-cols-[80px_1fr_auto] sm:items-center">
-                  <div className="relative h-20 w-20 overflow-hidden rounded-md bg-paper">
-                    <Image src={sponsor.logo_url || site.assets.logoPlaceholder} alt={sponsor.name} fill className="object-cover" sizes="80px" />
+            {tab === "galeria" ? (
+              <CmsBlock title="Galeria" onAdd={() => setGallery((current) => withPositions([...current, { id: newId("midia"), type: "image", src: "", poster: "", title: "Nova midia", active: true, position: current.length + 1 }]))} onSave={() => saveSection("galeria", gallery)}>
+                {gallery.map((item, index) => (
+                  <div key={item.id} {...dragHandlers(gallery, setGallery, index)} className="grid gap-4 rounded-lg border border-ink/10 bg-white p-4 lg:grid-cols-[32px_120px_1fr_auto] lg:items-center">
+                    <GripVertical className="cursor-grab text-ink/35" />
+                    {item.type === "video" ? <video src={item.src} poster={item.poster} className="h-24 w-32 rounded-md bg-ink object-cover" muted /> : imagePreview(item.src, item.title)}
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <TextInput label="Titulo" value={item.title} onChange={(value) => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, title: value } : row)))} />
+                      <label className="text-sm font-bold">
+                        Tipo
+                        <select value={item.type} onChange={(event) => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, type: event.target.value as "image" | "video" } : row)))} className="mt-2 w-full rounded-md border border-ink/15 bg-paper px-4 py-3">
+                          <option value="image">Imagem</option>
+                          <option value="video">Video</option>
+                        </select>
+                      </label>
+                      <TextInput label="Arquivo" value={item.src} onChange={(value) => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, src: value } : row)))} />
+                      <TextInput label="Poster do video" value={item.poster || ""} onChange={(value) => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, poster: value } : row)))} />
+                    </div>
+                    <RowActions active={item.active} onToggle={() => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, active: !row.active } : row)))} onUpload={(event) => uploadAndSet(event, "galeria", (url) => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, src: url } : row))))} onDelete={() => setGallery((items) => withPositions(items.filter((row) => row.id !== item.id)))} />
                   </div>
-                  <div>
-                    <h3 className="text-xl font-black">{sponsor.name}</h3>
-                    <p className="text-sm leading-6 text-ink/[0.65]">{sponsor.slogan}</p>
-                    <p className="mt-1 text-xs font-bold uppercase text-ember">{sponsor.tier || "colaborador"}</p>
+                ))}
+              </CmsBlock>
+            ) : null}
+
+            {tab === "patrocinadores" ? (
+              <CmsBlock title={`Patrocinadores (${stats.master}/1 Master, ${stats.parceiros}/8 Parceiros)`} onAdd={() => setSponsors((current) => withPositions([...current, { id: newId("patrocinador"), name: "Nova empresa", slogan: "", logo: "", url: "", instagram: "", facebook: "", whatsapp: "", tier: "parceiro", active: true, position: current.length + 1 }]))} onSave={() => saveSection("patrocinadores", sponsors)}>
+                {sponsors.map((item, index) => (
+                  <div key={item.id} {...dragHandlers(sponsors, setSponsors, index)} className="grid gap-4 rounded-lg border border-ink/10 bg-white p-4 lg:grid-cols-[32px_96px_1fr_auto] lg:items-center">
+                    <GripVertical className="cursor-grab text-ink/35" />
+                    {imagePreview(item.logo, item.name)}
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <TextInput label="Empresa" value={item.name} onChange={(value) => setSponsors((items) => items.map((row) => (row.id === item.id ? { ...row, name: value } : row)))} />
+                      <TextInput label="Slogan" value={item.slogan} onChange={(value) => setSponsors((items) => items.map((row) => (row.id === item.id ? { ...row, slogan: value } : row)))} />
+                      <TextInput label="Logomarca" value={item.logo} onChange={(value) => setSponsors((items) => items.map((row) => (row.id === item.id ? { ...row, logo: value } : row)))} />
+                      <TextInput label="Site" value={item.url} onChange={(value) => setSponsors((items) => items.map((row) => (row.id === item.id ? { ...row, url: value } : row)))} />
+                      <TextInput label="Instagram" value={item.instagram} onChange={(value) => setSponsors((items) => items.map((row) => (row.id === item.id ? { ...row, instagram: value } : row)))} />
+                      <TextInput label="Facebook" value={item.facebook} onChange={(value) => setSponsors((items) => items.map((row) => (row.id === item.id ? { ...row, facebook: value } : row)))} />
+                      <TextInput label="WhatsApp" value={item.whatsapp} onChange={(value) => setSponsors((items) => items.map((row) => (row.id === item.id ? { ...row, whatsapp: value } : row)))} />
+                      <label className="text-sm font-bold">
+                        Nivel
+                        <select value={item.tier} onChange={(event) => setSponsors((items) => items.map((row) => (row.id === item.id ? { ...row, tier: event.target.value as "master" | "parceiro" } : row)))} className="mt-2 w-full rounded-md border border-ink/15 bg-paper px-4 py-3">
+                          <option value="master">Patrocinador Master</option>
+                          <option value="parceiro">Patrocinador Parceiro</option>
+                        </select>
+                      </label>
+                    </div>
+                    <RowActions active={item.active} onToggle={() => setSponsors((items) => items.map((row) => (row.id === item.id ? { ...row, active: !row.active } : row)))} onUpload={(event) => uploadAndSet(event, "patrocinadores", (url) => setSponsors((items) => items.map((row) => (row.id === item.id ? { ...row, logo: url } : row))))} onDelete={() => setSponsors((items) => withPositions(items.filter((row) => row.id !== item.id)))} />
                   </div>
-                  <div className="grid gap-2">
-                    <button onClick={() => startEditing(sponsor)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-ink/15 px-4 py-2 font-black text-ink" type="button">
-                      <Edit3 size={18} />
-                      Editar
-                    </button>
-                    <button onClick={() => deleteSponsor(sponsor.id)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-ember px-4 py-2 font-black text-ember" type="button">
-                      <Trash2 size={18} />
-                      Remover
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            </div>
+                ))}
+              </CmsBlock>
+            ) : null}
           </div>
         )}
       </div>
     </main>
+  );
+
+  async function uploadAndSet(event: ChangeEvent<HTMLInputElement>, section: CmsSection, setter: (url: string) => void) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const url = await upload(section, file);
+    if (url) setter(url);
+    event.target.value = "";
+  }
+}
+
+function CmsBlock({ title, children, onAdd, onSave }: { title: string; children: ReactNode; onAdd: () => void; onSave: () => void }) {
+  return (
+    <section className="rounded-lg bg-white p-5 shadow-lg">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-2xl font-black">{title}</h2>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={onAdd} type="button" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-ink/15 px-4 py-2 font-black text-ink">
+            <Plus size={18} />
+            Adicionar
+          </button>
+          <button onClick={onSave} type="button" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-ember px-4 py-2 font-black text-white">
+            <Save size={18} />
+            Salvar JSON
+          </button>
+        </div>
+      </div>
+      <div className="grid gap-4">{children}</div>
+    </section>
+  );
+}
+
+function TextInput({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+  return (
+    <label className="text-sm font-bold">
+      {label}
+      <input value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 w-full rounded-md border border-ink/15 bg-paper px-4 py-3" />
+    </label>
+  );
+}
+
+function RowActions({ active, onToggle, onUpload, onDelete }: { active: boolean; onToggle: () => void; onUpload: (event: ChangeEvent<HTMLInputElement>) => void; onDelete: () => void }) {
+  return (
+    <div className="grid gap-2">
+      <button onClick={onToggle} type="button" className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-black ${active ? "bg-moss text-white" : "bg-ink/10 text-ink"}`}>
+        <Edit3 size={16} />
+        {active ? "Ativo" : "Inativo"}
+      </button>
+      <label className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-ink/15 px-3 py-2 text-sm font-black text-ink">
+        <ImagePlus size={16} />
+        Upload
+        <input type="file" accept="image/*,video/*" className="hidden" onChange={onUpload} />
+      </label>
+      <button onClick={onDelete} type="button" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-ember px-3 py-2 text-sm font-black text-ember">
+        <Trash2 size={16} />
+        Excluir
+      </button>
+    </div>
   );
 }

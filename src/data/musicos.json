@@ -1,0 +1,56 @@
+[
+  {
+    "id": "vocal",
+    "name": "Vocal",
+    "role": "Voz principal",
+    "image": "/assets/hero-singer.png",
+    "alt": "Vocalista no palco",
+    "active": true,
+    "position": 1
+  },
+  {
+    "id": "bateria",
+    "name": "Bateria",
+    "role": "Bateria",
+    "image": "/assets/hero-musician-1.png",
+    "alt": "Baterista",
+    "active": true,
+    "position": 2
+  },
+  {
+    "id": "guitarra",
+    "name": "Guitarra",
+    "role": "Guitarra",
+    "image": "/assets/hero-guitar.jpeg",
+    "alt": "Guitarrista",
+    "active": true,
+    "position": 3
+  },
+  {
+    "id": "violao",
+    "name": "Evento - Violao",
+    "role": "Violao e voz",
+    "image": "/assets/hero-violao.jpeg",
+    "alt": "Musico tocando violao",
+    "active": true,
+    "position": 4
+  },
+  {
+    "id": "teclado",
+    "name": "Teclado",
+    "role": "Teclado",
+    "image": "/assets/hero-musician-5.png",
+    "alt": "Tecladista",
+    "active": true,
+    "position": 5
+  },
+  {
+    "id": "baixo",
+    "name": "Baixo",
+    "role": "Baixo",
+    "image": "/assets/hero-bass.jpeg",
+    "alt": "Baixista",
+    "active": true,
+    "position": 6
+  }
+]

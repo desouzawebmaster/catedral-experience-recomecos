@@ -22,52 +22,33 @@ import {
   X
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { fallbackSponsors, type Sponsor } from "@/lib/sponsors";
-import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import { site, whatsappUrl } from "@/lib/site";
-import { defaultImageSlots, getSlot, getSlotsByCategory, type SiteImageSlot } from "@/lib/media";
+import { sortActive, type GalleryMedia, type Guest, type Musician, type Sponsor } from "@/lib/cms";
+import musiciansData from "@/data/musicos.json";
+import guestsData from "@/data/convidados.json";
+import galleryData from "@/data/galeria.json";
+import sponsorsData from "@/data/patrocinadores.json";
 
 const navItems = [
   { label: "Evento", href: "#evento" },
   { label: "Causa", href: "#causa" },
-  { label: "Galeria", href: "#galeria" },
+  { label: "Local", href: "#local" },
   { label: "Ingressos", href: "#ingressos" },
-  { label: "Patrocínios", href: "#patrocinios" },
-  { label: "Local", href: "#local" }
+  { label: "Convidados", href: "#convidados" },
+  { label: "Galeria", href: "#galeria" },
+  { label: "Patrocinios", href: "#patrocinios" }
 ];
 
 const eventHighlights: Array<[string, LucideIcon]> = [
-  ["Tributo à Banda Catedral", Music2],
+  ["Tributo a Banda Catedral", Music2],
   ["Evento beneficente", HeartHandshake],
-  ["Experiência intimista", Sparkles],
+  ["Experiencia intimista", Sparkles],
   ["Capacidade limitada", Users]
-];
-
-type GalleryItem = {
-  type: "photo" | "video";
-  src: string;
-  title: string;
-  poster?: string;
-};
-
-const galleryItems: GalleryItem[] = [
-  { type: "photo", src: "/assets/hero-image.png", title: "Banda no palco do evento" },
-  { type: "photo", src: "/assets/hero-singer.png", title: "Voz principal" },
-  { type: "photo", src: "/assets/guest-rodolfo.jpeg", title: "Participação especial" },
-  { type: "photo", src: "/assets/hero-musician-1.png", title: "Bateria" },
-  { type: "photo", src: "/assets/hero-guitar.jpeg", title: "Guitarra" },
-  { type: "photo", src: "/assets/hero-bass.jpeg", title: "Baixo" },
-  { type: "photo", src: "/assets/hero-musician-5.png", title: "Teclado" },
-  { type: "photo", src: "/assets/place-1.jpeg", title: "Dissenso Lounge" },
-  { type: "photo", src: "/assets/place-2.png", title: "Estrutura do palco" },
-  { type: "photo", src: "/assets/social-cause-2.jpeg", title: "Arrecadação de alimentos" },
-  { type: "photo", src: "/assets/social-cause-1.jpeg", title: "Entrega das cestas" },
-  { type: "video", src: "/assets/studio.mp4", poster: "/assets/place-1.jpeg", title: "Vídeo do espaço" }
 ];
 
 const tickets = [
   {
-    name: "Ingresso Recomeços",
+    name: "Ingresso Recomecos",
     price: "R$100,00",
     detail: "Para quem deseja contribuir diretamente com as causas do evento.",
     action: "Comprar na Sympla",
@@ -76,7 +57,7 @@ const tickets = [
   {
     name: "Ingresso Juntos",
     price: "R$70,00 por pessoa",
-    detail: "Válido apenas para compra de dois ingressos. Ideal para compartilhar a experiência.",
+    detail: "Valido apenas para compra de dois ingressos. Ideal para compartilhar a experiencia.",
     action: "Comprar na Sympla",
     href: site.symplaUrl,
     featured: true
@@ -84,9 +65,9 @@ const tickets = [
   {
     name: "Ingresso Pela Causa",
     price: "R$150,00",
-    detail: "Cota especial de contribuição direta, não disponível na Sympla.",
+    detail: "Cota especial de contribuicao direta, nao disponivel na Sympla.",
     action: "Comprar pelo WhatsApp",
-    href: whatsappUrl("Olá! Quero comprar o Ingresso Pela Causa do Catedral Experience – Recomeços.")
+    href: whatsappUrl("Ola! Quero comprar o Ingresso Pela Causa do Catedral Experience - Recomecos.")
   }
 ];
 
@@ -94,14 +75,28 @@ const sponsorTiers = [
   {
     name: "Patrocinador Master",
     availability: "Apenas 1 vaga",
-    benefits: ["Destaque máximo no site oficial", "Presença prioritária em Instagram e lives", "Logo em banner do evento", "Menções nas redes sociais"]
+    benefits: ["Destaque maximo no site oficial", "Presenca prioritaria em Instagram e lives", "Logo em banner do evento", "Mencoes nas redes sociais"]
   },
   {
-    name: "Patrocinador Colaborador",
-    availability: "Até 8 vagas",
-    benefits: ["Logo na área de parceiros", "Divulgação nas redes sociais", "Citação em conteúdos do evento", "Associação direta à causa social"]
+    name: "Patrocinador Parceiro",
+    availability: "Ate 8 vagas",
+    benefits: ["Logo na area de parceiros", "Divulgacao nas redes sociais", "Citacao em conteudos do evento", "Associacao direta a causa social"]
   }
 ];
+
+const causeImages = [
+  "/assets/social-cause-1.jpeg",
+  "/assets/social-cause-2.jpeg",
+  "/assets/social-cause-3.jpeg",
+  "/assets/social-cause-4.jpeg",
+  "/assets/social-cause-5.jpeg"
+];
+
+const placeImages = ["/assets/place-1.jpeg", "/assets/place-2.png", "/assets/place-3.png"];
+const musicians = sortActive(musiciansData as Musician[]);
+const guests = sortActive(guestsData as Guest[]);
+const galleryItems = sortActive(galleryData as GalleryMedia[]);
+const sponsors = sortActive(sponsorsData as Sponsor[]);
 
 function Countdown() {
   const target = useMemo(() => new Date(site.eventDateIso).getTime(), []);
@@ -119,7 +114,7 @@ function Countdown() {
   const seconds = Math.floor((distance / 1000) % 60);
 
   return (
-    <div className="grid grid-cols-4 gap-2 rounded-lg border border-white/15 bg-white/10 p-2 backdrop-blur sm:max-w-xl sm:gap-3 sm:p-3" aria-label="Contador regressivo para 14 de novembro de 2026 às 20h">
+    <div className="grid grid-cols-4 gap-2 rounded-lg border border-white/15 bg-white/10 p-2 backdrop-blur sm:max-w-xl sm:gap-3 sm:p-3" aria-label="Contador regressivo para 14 de novembro de 2026 as 20h">
       {[
         ["Dias", days],
         ["Horas", hours],
@@ -161,36 +156,22 @@ function Mosaic({ images, label }: { images: string[]; label: string }) {
   );
 }
 
-function SponsorContact() {
-  return (
-    <div className="rounded-lg bg-white p-6 text-center text-ink shadow-xl sm:p-8">
-      <h3 className="text-2xl font-black">Quer patrocinar o evento?</h3>
-      <p className="mx-auto mt-3 max-w-2xl leading-7 text-ink/70">
-        Fale direto pelo WhatsApp para conhecer as possibilidades de cota, contrapartidas e formatos de exposição da sua marca.
-      </p>
-      <a href={whatsappUrl("Olá! Quero informações sobre patrocínio do Catedral Experience – Recomeços.")} target="_blank" rel="noreferrer" className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-ember px-6 py-3 font-black text-white transition hover:bg-ink">
-        <HeartHandshake size={20} />
-        Quero ser patrocinador
-      </a>
-    </div>
-  );
-}
-
-function StackedMusicians({ images }: { images: SiteImageSlot[] }) {
+function StackedMusicians({ items }: { items: Musician[] }) {
   const positions = [
-    "left-[5%] top-[8%] h-64 w-44 rotate-[-7deg] sm:h-80 sm:w-56",
-    "left-[26%] top-[2%] h-72 w-48 rotate-[4deg] sm:h-[22rem] sm:w-60",
-    "left-[49%] top-[10%] h-64 w-44 rotate-[-3deg] sm:h-80 sm:w-56",
+    "left-[4%] top-[8%] h-64 w-44 rotate-[-7deg] sm:h-80 sm:w-56",
+    "left-[23%] top-[2%] h-72 w-48 rotate-[4deg] sm:h-[22rem] sm:w-60",
+    "left-[45%] top-[10%] h-64 w-44 rotate-[-3deg] sm:h-80 sm:w-56",
+    "right-[4%] top-[5%] h-64 w-44 rotate-[6deg] sm:h-80 sm:w-56",
     "left-[14%] bottom-[5%] h-52 w-40 rotate-[6deg] sm:h-64 sm:w-48",
-    "right-[6%] bottom-[10%] h-60 w-44 rotate-[5deg] sm:h-72 sm:w-56"
+    "right-[13%] bottom-[8%] h-60 w-44 rotate-[5deg] sm:h-72 sm:w-56"
   ];
 
   return (
-    <div className="relative min-h-[520px] overflow-hidden rounded-lg bg-ink shadow-xl">
+    <div className="relative min-h-[560px] overflow-hidden rounded-lg bg-ink shadow-xl">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(244,178,74,0.24),transparent_34%),linear-gradient(135deg,rgba(226,74,47,0.28),rgba(16,17,20,0.94))]" />
-      {images.map((image, index) => (
-        <div key={image.key} className={`absolute overflow-hidden rounded-lg border border-gold/50 bg-black shadow-2xl ${positions[index] ?? positions[0]}`}>
-          <Image src={image.image_url} alt={image.alt} fill className="object-cover object-top" sizes="(max-width: 768px) 45vw, 18vw" />
+      {items.map((item, index) => (
+        <div key={item.id} className={`absolute overflow-hidden rounded-lg border border-gold/50 bg-black shadow-2xl ${positions[index] ?? positions[index % positions.length]}`}>
+          <Image src={item.image} alt={item.alt} fill className="object-cover object-top" sizes="(max-width: 768px) 45vw, 18vw" />
         </div>
       ))}
     </div>
@@ -198,25 +179,14 @@ function StackedMusicians({ images }: { images: SiteImageSlot[] }) {
 }
 
 function Gallery() {
-  const [active, setActive] = useState<GalleryItem | null>(null);
+  const [active, setActive] = useState<GalleryMedia | null>(null);
 
   return (
     <>
       <div className="masonry">
         {galleryItems.map((item) => (
-          <button
-            key={`${item.type}-${item.src}`}
-            onClick={() => setActive(item)}
-            className="group relative mb-4 block w-full overflow-hidden rounded-lg bg-ink text-left shadow-lg"
-            type="button"
-          >
-            <Image
-              src={item.poster || item.src}
-              alt={item.title}
-              width={900}
-              height={640}
-              className="h-auto w-full object-cover transition duration-500 group-hover:scale-105"
-            />
+          <button key={item.id} onClick={() => setActive(item)} className="group relative mb-4 block w-full overflow-hidden rounded-lg bg-ink text-left shadow-lg" type="button">
+            <Image src={item.poster || item.src} alt={item.title} width={900} height={640} className="h-auto w-full object-cover object-top transition duration-500 group-hover:scale-105" />
             <span className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/[0.85] to-transparent p-4 text-sm font-black text-white">
               {item.title}
               {item.type === "video" ? <Play size={18} /> : <ArrowUpRight size={18} />}
@@ -246,56 +216,41 @@ function Gallery() {
 }
 
 function SponsorsShowcase() {
-  const [sponsors, setSponsors] = useState<Sponsor[]>(fallbackSponsors);
-
-  useEffect(() => {
-    if (!isSupabaseConfigured) return;
-
-    getSupabaseClient()
-      .from("sponsors")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        if (data?.length) setSponsors(data as Sponsor[]);
-      });
-  }, []);
+  const master = sponsors.find((sponsor) => sponsor.tier === "master");
+  const partners = sponsors.filter((sponsor) => sponsor.tier === "parceiro");
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {sponsors.map((sponsor) => (
-        <a key={sponsor.id} href={sponsor.url || "#"} target={sponsor.url?.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="rounded-lg border border-ink/10 bg-white p-5 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-          <div className="relative mx-auto mb-4 h-20 w-20 overflow-hidden rounded-md bg-paper">
-            <Image src={sponsor.logo_url || site.assets.logoPlaceholder} alt={sponsor.name} fill className="object-cover" sizes="80px" />
+    <div className="grid gap-6">
+      {master ? (
+        <a href={master.url || "#"} target={master.url?.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="grid gap-5 rounded-lg border border-gold/60 bg-ink p-6 text-white shadow-xl sm:grid-cols-[140px_1fr] sm:items-center">
+          <div className="relative h-32 w-32 overflow-hidden rounded-md bg-white">
+            <Image src={master.logo} alt={master.name} fill className="object-contain p-3" sizes="140px" />
           </div>
-          <h3 className="text-lg font-black text-ink">{sponsor.name}</h3>
-          <p className="mt-2 text-sm leading-6 text-ink/[0.65]">{sponsor.slogan}</p>
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-gold">Patrocinador Master</p>
+            <h3 className="mt-2 text-3xl font-black">{master.name}</h3>
+            <p className="mt-2 text-white/70">{master.slogan}</p>
+          </div>
         </a>
-      ))}
+      ) : null}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {partners.map((sponsor) => (
+          <a key={sponsor.id} href={sponsor.url || "#"} target={sponsor.url?.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="rounded-lg border border-ink/10 bg-white p-5 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+            <div className="relative mx-auto mb-4 h-20 w-20 overflow-hidden rounded-md bg-paper">
+              <Image src={sponsor.logo} alt={sponsor.name} fill className="object-contain p-2" sizes="80px" />
+            </div>
+            <h3 className="text-lg font-black text-ink">{sponsor.name}</h3>
+            <p className="mt-2 text-sm leading-6 text-ink/[0.65]">{sponsor.slogan}</p>
+          </a>
+        ))}
+      </div>
     </div>
   );
 }
 
 export function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [imageSlots, setImageSlots] = useState<SiteImageSlot[]>(defaultImageSlots);
-
-  useEffect(() => {
-    if (!isSupabaseConfigured) return;
-
-    getSupabaseClient()
-      .from("site_images")
-      .select("*")
-      .order("position", { ascending: true })
-      .then(({ data }) => {
-        if (data?.length) setImageSlots(data as SiteImageSlot[]);
-      });
-  }, []);
-
-  const heroImage = getSlot(imageSlots, "hero.main")?.image_url ?? site.assets.hero;
-  const causeImages = getSlotsByCategory(imageSlots, "causa").map((slot) => slot.image_url);
-  const eventImages = getSlotsByCategory(imageSlots, "evento");
-  const experienceImages = eventImages.map((slot) => slot.image_url);
-  const placeImages = getSlotsByCategory(imageSlots, "local").map((slot) => slot.image_url);
+  const experienceImages = musicians.map((item) => item.image);
 
   return (
     <main>
@@ -315,7 +270,7 @@ export function HomePage() {
                 </a>
               ))}
               <a href={site.musicianAreaUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md border border-gold/50 px-3 py-2 text-sm font-black text-gold transition hover:bg-gold hover:text-ink">
-                Área do Músico
+                Area do Musico
                 <ExternalLink size={15} />
               </a>
             </div>
@@ -324,15 +279,17 @@ export function HomePage() {
       </header>
 
       <section id="topo" className="relative min-h-screen overflow-hidden pt-20">
-        <Image src={heroImage} alt="Catedral Experience – Recomeços" fill priority className="object-cover object-center" sizes="100vw" />
+        <Image src={site.assets.hero} alt="Catedral Experience - Recomecos" fill priority className="object-cover object-center" sizes="100vw" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/[0.55] to-ink" />
         <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] max-w-7xl flex-col justify-center px-4 pb-12 pt-16 sm:px-6 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="max-w-4xl">
             <p className="mb-4 inline-flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.24em] text-gold backdrop-blur">
               <CalendarDays size={16} />
-              14/11/2026 às 20:00
+              14/11/2026 as 20:00
             </p>
-            <h1 className="text-5xl font-black leading-none text-white sm:text-7xl lg:text-8xl"><BrandName /> <span className="block font-black">– Recomeços</span></h1>
+            <h1 className="text-5xl font-black leading-none text-white sm:text-7xl lg:text-8xl">
+              <BrandName /> <span className="block font-black">- Recomecos</span>
+            </h1>
             <p className="mt-5 text-2xl font-black text-gold sm:text-4xl">{site.slogan}</p>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-white/[0.82] sm:text-xl">{site.description}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -359,7 +316,7 @@ export function HomePage() {
             <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-ember">Sobre o evento</p>
             <h2 className="text-3xl font-black text-ink sm:text-5xl">Um som de qualidade, uma atitude de amor!</h2>
             <p className="mt-5 text-lg leading-8 text-ink/[0.72]">
-              O Catedral Experience – Recomeços celebra o repertório da Banda Catedral em uma experiência independente, intimista e beneficente, criada para aproximar música, memória afetiva e ação social concreta.
+              O Catedral Experience - Recomecos celebra o repertorio da Banda Catedral em uma experiencia independente, intimista e beneficente, criada para aproximar musica, memoria afetiva e acao social concreta.
             </p>
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               {eventHighlights.map(([text, Icon]) => (
@@ -370,25 +327,25 @@ export function HomePage() {
               ))}
             </div>
           </div>
-          <StackedMusicians images={eventImages} />
+          <StackedMusicians items={musicians} />
         </div>
       </section>
 
       <section id="causa" className="bg-white px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader eyebrow="A causa" title="Duas frentes sociais, um mesmo recomeço." text="Parte da arrecadação será direcionada a apoio emergencial e arrecadação de alimentos para famílias em vulnerabilidade em São Paulo." />
+          <SectionHeader eyebrow="A causa" title="Duas frentes sociais, um mesmo recomeco." text="Parte da arrecadacao sera direcionada a apoio emergencial e arrecadacao de alimentos para familias em vulnerabilidade em Sao Paulo." />
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
             <Mosaic images={causeImages} label="Causa social" />
             <div className="grid gap-5">
               <div className="rounded-lg border border-ink/10 bg-paper p-6">
                 <HeartHandshake className="mb-4 text-ember" size={34} />
-                <h3 className="text-2xl font-black text-ink">Família em Recomeço</h3>
-                <p className="mt-3 leading-7 text-ink/70">Parte da arrecadação ajudará uma família que sofreu um golpe financeiro e está reconstruindo sua vida com dignidade, segurança e esperança.</p>
+                <h3 className="text-2xl font-black text-ink">Familia em Recomeco</h3>
+                <p className="mt-3 leading-7 text-ink/70">Parte da arrecadacao ajudara uma familia que sofreu um golpe financeiro e esta reconstruindo sua vida com dignidade, seguranca e esperanca.</p>
               </div>
               <div className="rounded-lg border border-ink/10 bg-paper p-6">
                 <Utensils className="mb-4 text-moss" size={34} />
-                <h3 className="text-2xl font-black text-ink">Arrecadação de Alimentos</h3>
-                <p className="mt-3 leading-7 text-ink/70">O evento também impulsiona a arrecadação de alimentos para famílias em situação de vulnerabilidade em São Paulo.</p>
+                <h3 className="text-2xl font-black text-ink">Arrecadacao de Alimentos</h3>
+                <p className="mt-3 leading-7 text-ink/70">O evento tambem impulsiona a arrecadacao de alimentos para familias em situacao de vulnerabilidade em Sao Paulo.</p>
                 <div className="-mb-10 ml-auto mt-6 w-fit rounded-lg bg-ember px-5 py-4 text-white shadow-xl">
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-white/75">Meta</p>
                   <p className="text-2xl font-black">200+ Kg de alimentos</p>
@@ -399,37 +356,41 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="bg-ink px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2 lg:items-center">
-          <div className="text-white">
-            <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-gold">Experiência musical</p>
-            <h2 className="text-3xl font-black sm:text-5xl">Quando a música encontra um propósito</h2>
-            <p className="mt-5 text-lg leading-8 text-white/[0.72]">
-              Banda cover, participação especial de Rodolfo Lauber, estrutura preparada para uma noite marcante e ambiente intimista para quem quer viver a música de perto.
-            </p>
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              {["Banda cover", "Rodolfo Lauber", "Estrutura do evento", "Ambiente intimista"].map((item) => (
-                <div key={item} className="flex items-center gap-3 rounded-lg border border-white/[0.12] bg-white/[0.08] p-4">
-                  <Check className="text-gold" size={20} />
-                  <span className="font-black">{item}</span>
+      <section id="local" className="bg-white px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2">
+          <div>
+            <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-ember">Local</p>
+            <h2 className="text-4xl font-black text-ink">{site.address.venue}</h2>
+            <div className="mt-5 space-y-2 text-lg font-bold leading-8 text-ink/[0.72]">
+              <p>{site.address.street}</p>
+              <p>{site.address.floor}</p>
+              <p>{site.address.district}</p>
+              <p>{site.address.city}</p>
+            </div>
+            <div className="mt-6 overflow-hidden rounded-lg border border-ink/10">
+              <iframe title="Mapa para Dissenso Lounge" src="https://www.google.com/maps?q=Dissenso%20Lounge%20Rua%20Anhaia%201180%20Bom%20Retiro%20S%C3%A3o%20Paulo&output=embed" loading="lazy" className="h-80 w-full border-0" referrerPolicy="no-referrer-when-downgrade" />
+            </div>
+          </div>
+          <div className="grid gap-4">
+            <div className="overflow-hidden rounded-lg bg-ink">
+              <video autoPlay muted loop playsInline poster="/assets/place-1.jpeg" className="h-full min-h-[320px] w-full object-cover">
+                <source src="/assets/studio.mp4" type="video/mp4" />
+              </video>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {placeImages.map((image, index) => (
+                <div key={image} className="relative min-h-32 overflow-hidden rounded-lg bg-ink sm:min-h-40">
+                  <Image src={image} alt={`Dissenso Lounge ${index + 1}`} fill className="object-cover" sizes="(max-width: 768px) 33vw, 18vw" />
                 </div>
               ))}
             </div>
           </div>
-          <Mosaic images={experienceImages} label="Experiência musical" />
-        </div>
-      </section>
-
-      <section id="galeria" className="bg-paper px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <SectionHeader eyebrow="Galeria" title="Fotos e vídeos preparados para crescer." text="Uma galeria moderna em formato masonry para registrar ensaios, bastidores, parceiros, vídeos e momentos do evento." />
-          <Gallery />
         </div>
       </section>
 
       <section id="ingressos" className="bg-white px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader eyebrow="Ingressos" title="Escolha sua forma de participar." text="Garanta seu lugar e contribua para as causas sociais do Catedral Experience – Recomeços." />
+          <SectionHeader eyebrow="Ingressos" title="Escolha sua forma de participar." text="Garanta seu lugar e contribua para as causas sociais do Catedral Experience - Recomecos." />
           <div className="grid gap-5 lg:grid-cols-3">
             {tickets.map((ticket) => (
               <div key={ticket.name} className={`relative rounded-lg border p-6 shadow-sm ${ticket.featured ? "border-ember bg-ink text-white shadow-glow" : "border-ink/10 bg-paper text-ink"}`}>
@@ -447,13 +408,60 @@ export function HomePage() {
         </div>
       </section>
 
+      <section className="bg-ink px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2 lg:items-center">
+          <div className="text-white">
+            <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-gold">Experiencia musical</p>
+            <h2 className="text-3xl font-black sm:text-5xl">Quando a musica encontra um proposito</h2>
+            <p className="mt-5 text-lg leading-8 text-white/[0.72]">
+              Banda cover, convidados especiais, estrutura preparada para uma noite marcante e ambiente intimista para quem quer viver a musica de perto.
+            </p>
+            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              {["Banda cover", "Convidados especiais", "Estrutura do evento", "Ambiente intimista"].map((item) => (
+                <div key={item} className="flex items-center gap-3 rounded-lg border border-white/[0.12] bg-white/[0.08] p-4">
+                  <Check className="text-gold" size={20} />
+                  <span className="font-black">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <Mosaic images={experienceImages} label="Experiencia musical" />
+        </div>
+      </section>
+
+      <section id="convidados" className="bg-paper px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader eyebrow="Convidados Especiais" title="Presencas que ampliam a noite." text="Participacoes especiais preparadas para somar historia, emocao e proposito ao evento." />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {guests.map((guest) => (
+              <article key={guest.id} className="overflow-hidden rounded-lg bg-white shadow-lg">
+                <div className="relative aspect-[4/3] bg-ink">
+                  <Image src={guest.image} alt={guest.alt} fill className="object-cover object-top" sizes="(max-width: 768px) 100vw, 33vw" />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-2xl font-black text-ink">{guest.name}</h3>
+                  <p className="mt-3 leading-7 text-ink/70">{guest.description}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="galeria" className="bg-paper px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader eyebrow="Galeria" title="Fotos e videos preparados para crescer." text="Uma galeria moderna em formato masonry para registrar ensaios, bastidores, parceiros, videos e momentos do evento." />
+          <Gallery />
+        </div>
+      </section>
+
       <section id="patrocinios" className="bg-ink px-4 py-16 text-white sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto mb-10 max-w-4xl text-center">
-            <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-gold">Patrocínios</p>
-            <h2 className="text-4xl font-black sm:text-6xl">Sua marca impulsionando recomeços.</h2>
+            <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-gold">Patrocinios</p>
+            <h2 className="text-4xl font-black sm:text-6xl">Sua marca impulsionando recomecos.</h2>
             <p className="mt-5 text-lg leading-8 text-white/[0.72]">
-              O patrocínio conecta sua empresa a um evento com presença digital, visibilidade local, conteúdo em redes sociais e impacto social transparente.
+              O patrocinio conecta sua empresa a um evento com presenca digital, visibilidade local, conteudo em redes sociais e impacto social transparente.
             </p>
           </div>
           <div className="mb-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -472,7 +480,7 @@ export function HomePage() {
                     <p className="mt-2 font-bold text-ember">{tier.availability}</p>
                   </div>
                   <div className="rounded-md bg-paper px-5 py-4 text-center">
-                    <p className="text-xs font-black uppercase text-ink/[0.55]">Condição</p>
+                    <p className="text-xs font-black uppercase text-ink/[0.55]">Condicao</p>
                     <p className="text-3xl font-black text-ember">A combinar</p>
                   </div>
                 </div>
@@ -484,67 +492,26 @@ export function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <a href={whatsappUrl(`Olá! Quero ser ${tier.name} do Catedral Experience – Recomeços.`)} target="_blank" rel="noreferrer" className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-ember px-5 py-3 font-black text-white transition hover:bg-ink">
+                <a href={whatsappUrl(`Ola! Quero ser ${tier.name} do Catedral Experience - Recomecos.`)} target="_blank" rel="noreferrer" className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-ember px-5 py-3 font-black text-white transition hover:bg-ink">
                   <HeartHandshake size={20} />
                   Quero ser patrocinador
                 </a>
               </div>
             ))}
           </div>
-          <div className="mt-10">
-            <SponsorContact />
-          </div>
         </div>
       </section>
 
       <section id="parceiros" className="bg-paper px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader eyebrow="Parceiros" title="Marcas que caminham com a causa." text="A área visual de patrocinadores está pronta para receber logomarcas, slogans e links oficiais via administração Supabase." />
+          <SectionHeader eyebrow="Parceiros" title="Marcas que caminham com a causa." text="O patrocinador Master recebe destaque principal, e os patrocinadores parceiros aparecem em uma vitrine visual preparada para crescer." />
           <SponsorsShowcase />
-        </div>
-      </section>
-
-      <section id="local" className="bg-white px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2">
-          <div>
-            <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-ember">Local</p>
-            <h2 className="text-4xl font-black text-ink">{site.address.venue}</h2>
-            <div className="mt-5 space-y-2 text-lg font-bold leading-8 text-ink/[0.72]">
-              <p>{site.address.street}</p>
-              <p>{site.address.floor}</p>
-              <p>{site.address.district}</p>
-              <p>{site.address.city}</p>
-            </div>
-            <div className="mt-6 overflow-hidden rounded-lg border border-ink/10">
-              <iframe
-                title="Mapa para Dissenso Lounge"
-                src="https://www.google.com/maps?q=Dissenso%20Lounge%20Rua%20Anhaia%201180%20Bom%20Retiro%20S%C3%A3o%20Paulo&output=embed"
-                loading="lazy"
-                className="h-80 w-full border-0"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </div>
-          </div>
-          <div className="grid gap-4">
-            <div className="overflow-hidden rounded-lg bg-ink">
-              <video controls poster="/assets/place-1.jpeg" className="h-full min-h-[320px] w-full object-cover">
-                <source src="/assets/studio.mp4" type="video/mp4" />
-              </video>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              {placeImages.map((image, index) => (
-                <div key={image} className="relative min-h-32 overflow-hidden rounded-lg bg-ink sm:min-h-40">
-                  <Image src={image} alt={`Dissenso Lounge ${index + 1}`} fill className="object-cover" sizes="(max-width: 768px) 33vw, 18vw" />
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
       <section className="bg-ink px-4 py-14 text-white sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-6 sm:grid-cols-3">
-          <a href={whatsappUrl("Olá! Quero falar sobre o Catedral Experience – Recomeços.")} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-lg border border-white/[0.12] bg-white/[0.08] p-5 font-black">
+          <a href={whatsappUrl("Ola! Quero falar sobre o Catedral Experience - Recomecos.")} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-lg border border-white/[0.12] bg-white/[0.08] p-5 font-black">
             <Users className="text-gold" />
             WhatsApp
           </a>
@@ -561,7 +528,7 @@ export function HomePage() {
 
       <footer className="bg-black px-4 py-8 text-white/70 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 <BrandName /> – Recomeços. Todos os direitos reservados.</p>
+          <p>© 2026 <BrandName /> - Recomecos. Todos os direitos reservados.</p>
           <p className="max-w-2xl text-sm">{site.shortLegalNotice}</p>
         </div>
       </footer>

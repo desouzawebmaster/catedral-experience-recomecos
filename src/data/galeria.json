@@ -1,0 +1,59 @@
+[
+  {
+    "id": "hero",
+    "type": "image",
+    "src": "/assets/hero-image.png",
+    "title": "Banda no palco do evento",
+    "active": true,
+    "position": 1
+  },
+  {
+    "id": "vocal",
+    "type": "image",
+    "src": "/assets/hero-singer.png",
+    "title": "Voz principal",
+    "active": true,
+    "position": 2
+  },
+  {
+    "id": "rodolfo",
+    "type": "image",
+    "src": "/assets/guest-rodolfo-lauber.jpeg",
+    "title": "Convidado especial",
+    "active": true,
+    "position": 3
+  },
+  {
+    "id": "violao",
+    "type": "image",
+    "src": "/assets/hero-violao.jpeg",
+    "title": "Violao",
+    "active": true,
+    "position": 4
+  },
+  {
+    "id": "guitarra",
+    "type": "image",
+    "src": "/assets/hero-guitar.jpeg",
+    "title": "Guitarra",
+    "active": true,
+    "position": 5
+  },
+  {
+    "id": "baixo",
+    "type": "image",
+    "src": "/assets/hero-bass.jpeg",
+    "title": "Baixo",
+    "active": true,
+    "position": 6
+  },
+  {
+    "id": "studio",
+    "type": "video",
+    "src": "/assets/studio.mp4",
+    "poster": "/assets/place-1.jpeg",
+    "title": "Video do espaco",
+    "active": true,
+    "position": 7
+  }
+]

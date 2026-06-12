@@ -1,6 +1,6 @@
-# Catedral Experience – Recomeços
+# Catedral Experience - Recomecos
 
-Site profissional para captação de patrocinadores, venda de ingressos e divulgação social do evento beneficente independente Catedral Experience – Recomeços.
+Site profissional para captacao de patrocinadores, venda de ingressos e divulgacao social do evento beneficente independente Catedral Experience - Recomecos.
 
 ## Stack
 
@@ -10,8 +10,9 @@ Site profissional para captação de patrocinadores, venda de ingressos e divulg
 - Tailwind CSS
 - Framer Motion
 - Lucide Icons
-- Supabase para administração de patrocinadores
-- Pronto para Vercel, GitHub e domínio próprio
+- Supabase Auth para login do administrador
+- CMS local por JSON para conteudo editavel
+- Pronto para Vercel, GitHub e dominio proprio
 
 ## Como rodar
 
@@ -25,40 +26,54 @@ Crie `.env.local` a partir de `.env.example` e preencha:
 ```bash
 NEXT_PUBLIC_SITE_URL=https://www.seudominio.com.br
 NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-chave-anon-publica
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-publishable-key
 NEXT_PUBLIC_CONTACT_EMAIL=contato@catedralexperience.com.br
 NEXT_PUBLIC_WHATSAPP_NUMBER=5511999999999
 NEXT_PUBLIC_INSTAGRAM_URL=https://www.instagram.com/catedralexperience
 ```
 
-## Supabase
+## Admin
 
-1. Crie um projeto no Supabase.
-2. Rode o SQL de `supabase/schema.sql`.
-3. Em Authentication, crie o usuário administrador por e-mail e senha.
-4. Desative cadastros públicos ou mantenha o acesso por convite/manual para proteger a administração.
-5. Configure as variáveis de ambiente na Vercel.
-6. Acesse `/admin` para cadastrar e editar patrocinadores.
+O painel `/admin` usa Supabase apenas para autenticacao. Crie manualmente o usuario `desouza.webmaster@gmail.com` em:
 
-## Assets
+`Supabase > Authentication > Users`
 
-As imagens `.jpg` fornecidas foram copiadas para `public/assets`.
+Depois acesse `/admin` com este e-mail e senha. O painel permite gerenciar:
 
-Os arquivos `hero-band.png` e `studio.mp4` vieram apenas como metadados `.asset.json`, sem os binários correspondentes. Quando os arquivos reais estiverem disponíveis, coloque-os em:
+- Musicos
+- Convidados especiais
+- Galeria de fotos e videos
+- Patrocinadores
 
-- `public/assets/hero-band.png`
-- `public/assets/studio.mp4`
+Os dados ficam nos arquivos:
 
-O site já está estruturado para receber novos itens de galeria e novos patrocinadores sem alteração estrutural.
+- `src/data/musicos.json`
+- `src/data/convidados.json`
+- `src/data/galeria.json`
+- `src/data/patrocinadores.json`
+
+Uploads locais sao salvos em:
+
+- `public/uploads/musicos`
+- `public/uploads/convidados`
+- `public/uploads/galeria`
+- `public/uploads/patrocinadores`
+
+## Importante sobre Vercel
+
+A Vercel nao deve ser usada como armazenamento permanente de uploads feitos em tempo de execucao. Em producao, arquivos gravados pelo painel podem sumir em novos deploys ou novas instancias.
+
+Esta estrutura foi preparada para funcionar localmente e manter persistencia no repositorio. Para uso administrativo real em producao, migre os uploads para Supabase Storage, Cloudinary, S3 ou outro storage externo. Os JSONs tambem podem ser migrados futuramente para Supabase Database.
 
 ## Deploy na Vercel
 
 1. Suba o projeto para o GitHub.
-2. Importe o repositório na Vercel.
-3. Configure as variáveis de ambiente.
-4. Adicione o domínio próprio em Project Settings > Domains.
+2. Importe o repositorio na Vercel.
+3. Configure as variaveis de ambiente.
+4. Faca um novo deploy depois de alterar variaveis.
+5. Adicione o dominio proprio em Project Settings > Domains.
 
-## SEO incluído
+## SEO incluido
 
 - Meta tags completas
 - Open Graph
@@ -66,8 +81,8 @@ O site já está estruturado para receber novos itens de galeria e novos patroci
 - `sitemap.xml`
 - `robots.txt`
 - Schema.org para evento
-- Conteúdo otimizado para: Banda Catedral, Tributo Banda Catedral, Show Banda Catedral São Paulo, Evento beneficente São Paulo, Música cristã São Paulo e Catedral Experience
+- Conteudo otimizado para: Banda Catedral, Tributo Banda Catedral, Show Banda Catedral Sao Paulo, Evento beneficente Sao Paulo, Musica crista Sao Paulo e Catedral Experience
 
 ## Aviso legal
 
-Catedral Experience – Recomeços é um evento independente em homenagem ao repertório da Banda Catedral e não possui vínculo oficial com a banda.
+Catedral Experience - Recomecos e um evento independente em homenagem ao repertorio da Banda Catedral e nao possui vinculo oficial com a banda.
