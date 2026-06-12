@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     description: "Mais que um show. Um recomeço.",
     images: [
       {
-        url: "/assets/hero-band-stage.jpg",
+        url: "/assets/hero-image.png",
         width: 1200,
         height: 630,
         alt: "Catedral Experience – Recomeços"
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Catedral Experience – Recomeços",
     description: "Uma noite especial de música, propósito e impacto social.",
-    images: ["/assets/hero-band-stage.jpg"]
+    images: ["/assets/hero-image.png"]
   },
   robots: {
     index: true,

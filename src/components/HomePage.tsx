@@ -1,18 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowUpRight,
   CalendarDays,
   Check,
-  Clock,
   ExternalLink,
   HeartHandshake,
   Instagram,
   Mail,
-  MapPin,
   Menu,
   Music2,
   Play,
@@ -27,6 +25,7 @@ import type { LucideIcon } from "lucide-react";
 import { fallbackSponsors, type Sponsor } from "@/lib/sponsors";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import { site, whatsappUrl } from "@/lib/site";
+import { defaultImageSlots, getSlot, getSlotsByCategory, type SiteImageSlot } from "@/lib/media";
 
 const navItems = [
   { label: "Evento", href: "#evento" },
@@ -36,20 +35,6 @@ const navItems = [
   { label: "Patrocínios", href: "#patrocinios" },
   { label: "Local", href: "#local" }
 ];
-
-const causeImages = [
-  "/assets/social-cause-1.jpeg",
-  "/assets/social-cause-2.jpeg",
-  "/assets/social-cause-3.jpeg",
-  "/assets/social-cause-4.jpeg"
-];
-const experienceImages = [
-  "/assets/hero-singer.png",
-  "/assets/hero-musician-1.png",
-  "/assets/guest-rodolfo.jpeg",
-  "/assets/hero-musician-5.png"
-];
-const placeImages = ["/assets/place-1.jpeg", "/assets/place-2.png", "/assets/place-3.png"];
 
 const eventHighlights: Array<[string, LucideIcon]> = [
   ["Tributo à Banda Catedral", Music2],
@@ -66,7 +51,7 @@ type GalleryItem = {
 };
 
 const galleryItems: GalleryItem[] = [
-  { type: "photo", src: "/assets/hero-band-stage.jpg", title: "Banda no palco do evento" },
+  { type: "photo", src: "/assets/hero-image.png", title: "Banda no palco do evento" },
   { type: "photo", src: "/assets/hero-singer.png", title: "Voz principal" },
   { type: "photo", src: "/assets/guest-rodolfo.jpeg", title: "Participação especial" },
   { type: "photo", src: "/assets/hero-musician-1.png", title: "Bateria" },
@@ -106,13 +91,11 @@ const sponsorTiers = [
   {
     name: "Patrocinador Master",
     availability: "Apenas 1 vaga",
-    price: "R$600",
     benefits: ["Destaque máximo no site oficial", "Presença prioritária em Instagram e lives", "Logo em banner do evento", "Menções nas redes sociais"]
   },
   {
     name: "Patrocinador Colaborador",
     availability: "Até 8 vagas",
-    price: "R$250",
     benefits: ["Logo na área de parceiros", "Divulgação nas redes sociais", "Citação em conteúdos do evento", "Associação direta à causa social"]
   }
 ];
@@ -159,62 +142,55 @@ function SectionHeader({ eyebrow, title, text }: { eyebrow: string; title: strin
   );
 }
 
+function BrandName({ className = "" }: { className?: string }) {
+  return <span className={`brand-wordmark ${className}`}>Catedral Experience</span>;
+}
+
 function Mosaic({ images, label }: { images: string[]; label: string }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-4">
       {images.map((src, index) => (
-        <div key={src} className={`relative overflow-hidden rounded-lg ${index === 0 ? "row-span-2 min-h-72" : "min-h-36"}`}>
-          <Image src={src} alt={`${label} ${index + 1}`} fill className="object-cover" sizes="(max-width: 768px) 50vw, 25vw" />
+        <div key={src} className={`relative overflow-hidden rounded-lg ${index === 0 ? "row-span-2 min-h-[34rem]" : "min-h-[16.25rem]"}`}>
+          <Image src={src} alt={`${label} ${index + 1}`} fill className="object-cover object-top" sizes="(max-width: 768px) 50vw, 25vw" />
         </div>
       ))}
     </div>
   );
 }
 
-function SponsorForm() {
-  const [sent, setSent] = useState(false);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const lines = ["Interesse em patrocínio - Catedral Experience – Recomeços", ""];
-
-    for (const [key, value] of data.entries()) {
-      lines.push(`${key}: ${value}`);
-    }
-
-    window.location.href = `mailto:${site.contactEmail}?subject=${encodeURIComponent("Quero patrocinar o Catedral Experience")}&body=${encodeURIComponent(lines.join("\n"))}`;
-    setSent(true);
-  }
-
+function SponsorContact() {
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 rounded-lg bg-white p-5 text-ink shadow-xl sm:grid-cols-2 sm:p-8">
-      {["Nome", "Empresa", "Telefone", "E-mail", "Site", "Instagram"].map((field) => (
-        <label key={field} className="text-sm font-bold text-ink/75">
-          {field}
-          <input
-            required={["Nome", "Telefone", "E-mail"].includes(field)}
-            name={field}
-            type={field === "E-mail" ? "email" : "text"}
-            className="mt-2 w-full rounded-md border border-ink/15 bg-paper px-4 py-3 text-base outline-none transition focus:border-ember focus:ring-2 focus:ring-ember/20"
-          />
-        </label>
-      ))}
-      <label className="text-sm font-bold text-ink/75 sm:col-span-2">
-        Mensagem
-        <textarea
-          name="Mensagem"
-          rows={5}
-          className="mt-2 w-full rounded-md border border-ink/15 bg-paper px-4 py-3 text-base outline-none transition focus:border-ember focus:ring-2 focus:ring-ember/20"
-          defaultValue="Olá! Quero receber informações sobre as cotas de patrocínio do evento."
-        />
-      </label>
-      <button className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-ember px-6 py-3 font-black text-white transition hover:bg-ink sm:col-span-2" type="submit">
+    <div className="rounded-lg bg-white p-6 text-center text-ink shadow-xl sm:p-8">
+      <h3 className="text-2xl font-black">Quer patrocinar o evento?</h3>
+      <p className="mx-auto mt-3 max-w-2xl leading-7 text-ink/70">
+        Fale direto pelo WhatsApp para conhecer as possibilidades de cota, contrapartidas e formatos de exposição da sua marca.
+      </p>
+      <a href={whatsappUrl("Olá! Quero informações sobre patrocínio do Catedral Experience – Recomeços.")} target="_blank" rel="noreferrer" className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-ember px-6 py-3 font-black text-white transition hover:bg-ink">
         <HeartHandshake size={20} />
         Quero ser patrocinador
-      </button>
-      {sent ? <p className="text-sm font-bold text-moss sm:col-span-2">Seu aplicativo de e-mail foi aberto com a mensagem pronta.</p> : null}
-    </form>
+      </a>
+    </div>
+  );
+}
+
+function StackedMusicians({ images }: { images: SiteImageSlot[] }) {
+  const positions = [
+    "left-[5%] top-[8%] h-64 w-44 rotate-[-7deg] sm:h-80 sm:w-56",
+    "left-[26%] top-[2%] h-72 w-48 rotate-[4deg] sm:h-[22rem] sm:w-60",
+    "left-[49%] top-[10%] h-64 w-44 rotate-[-3deg] sm:h-80 sm:w-56",
+    "left-[14%] bottom-[5%] h-52 w-40 rotate-[6deg] sm:h-64 sm:w-48",
+    "right-[6%] bottom-[10%] h-60 w-44 rotate-[5deg] sm:h-72 sm:w-56"
+  ];
+
+  return (
+    <div className="relative min-h-[520px] overflow-hidden rounded-lg bg-ink shadow-xl">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(244,178,74,0.24),transparent_34%),linear-gradient(135deg,rgba(226,74,47,0.28),rgba(16,17,20,0.94))]" />
+      {images.map((image, index) => (
+        <div key={image.key} className={`absolute overflow-hidden rounded-lg border border-gold/50 bg-black shadow-2xl ${positions[index] ?? positions[0]}`}>
+          <Image src={image.image_url} alt={image.alt} fill className="object-cover object-top" sizes="(max-width: 768px) 45vw, 18vw" />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -298,13 +274,32 @@ function SponsorsShowcase() {
 
 export function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [imageSlots, setImageSlots] = useState<SiteImageSlot[]>(defaultImageSlots);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    getSupabaseClient()
+      .from("site_images")
+      .select("*")
+      .order("position", { ascending: true })
+      .then(({ data }) => {
+        if (data?.length) setImageSlots(data as SiteImageSlot[]);
+      });
+  }, []);
+
+  const heroImage = getSlot(imageSlots, "hero.main")?.image_url ?? site.assets.hero;
+  const causeImages = getSlotsByCategory(imageSlots, "causa").map((slot) => slot.image_url);
+  const eventImages = getSlotsByCategory(imageSlots, "evento");
+  const experienceImages = eventImages.map((slot) => slot.image_url);
+  const placeImages = getSlotsByCategory(imageSlots, "local").map((slot) => slot.image_url);
 
   return (
     <main>
       <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-ink/90 backdrop-blur">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8" aria-label="Menu principal">
           <a href="#topo" className="text-sm font-black uppercase tracking-[0.2em] text-white sm:text-base">
-            Catedral Experience
+            <BrandName />
           </a>
           <button className="rounded-md p-2 text-white lg:hidden" onClick={() => setMenuOpen((value) => !value)} type="button" aria-label="Abrir menu">
             {menuOpen ? <X /> : <Menu />}
@@ -326,7 +321,7 @@ export function HomePage() {
       </header>
 
       <section id="topo" className="relative min-h-screen overflow-hidden pt-20">
-        <Image src={site.assets.hero} alt="Catedral Experience – Recomeços" fill priority className="object-cover" sizes="100vw" />
+        <Image src={heroImage} alt="Catedral Experience – Recomeços" fill priority className="object-cover object-center" sizes="100vw" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/[0.55] to-ink" />
         <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] max-w-7xl flex-col justify-center px-4 pb-12 pt-16 sm:px-6 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="max-w-4xl">
@@ -334,7 +329,7 @@ export function HomePage() {
               <CalendarDays size={16} />
               14/11/2026 às 20:00
             </p>
-            <h1 className="text-5xl font-black leading-none text-white sm:text-7xl lg:text-8xl">Catedral Experience – Recomeços</h1>
+            <h1 className="text-5xl font-black leading-none text-white sm:text-7xl lg:text-8xl"><BrandName /> <span className="block font-black">– Recomeços</span></h1>
             <p className="mt-5 text-2xl font-black text-gold sm:text-4xl">{site.slogan}</p>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-white/[0.82] sm:text-xl">{site.description}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -359,7 +354,7 @@ export function HomePage() {
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
             <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-ember">Sobre o evento</p>
-            <h2 className="text-3xl font-black text-ink sm:text-5xl">Tributo beneficente com cara de grande noite.</h2>
+            <h2 className="text-3xl font-black text-ink sm:text-5xl">Um som de qualidade, uma atitude de amor!</h2>
             <p className="mt-5 text-lg leading-8 text-ink/[0.72]">
               O Catedral Experience – Recomeços celebra o repertório da Banda Catedral em uma experiência independente, intimista e beneficente, criada para aproximar música, memória afetiva e ação social concreta.
             </p>
@@ -372,9 +367,7 @@ export function HomePage() {
               ))}
             </div>
           </div>
-          <div className="relative min-h-[460px] overflow-hidden rounded-lg">
-            <Image src={site.assets.experienceHero} alt="Experiência musical do Catedral Experience" fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
-          </div>
+          <StackedMusicians images={eventImages} />
         </div>
       </section>
 
@@ -393,6 +386,10 @@ export function HomePage() {
                 <Utensils className="mb-4 text-moss" size={34} />
                 <h3 className="text-2xl font-black text-ink">Arrecadação de Alimentos</h3>
                 <p className="mt-3 leading-7 text-ink/70">O evento também impulsiona a arrecadação de alimentos para famílias em situação de vulnerabilidade em São Paulo.</p>
+                <div className="-mb-10 ml-auto mt-6 w-fit rounded-lg bg-ember px-5 py-4 text-white shadow-xl">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-white/75">Meta</p>
+                  <p className="text-2xl font-black">200+ Kg de alimentos</p>
+                </div>
               </div>
             </div>
           </div>
@@ -403,7 +400,7 @@ export function HomePage() {
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2 lg:items-center">
           <div className="text-white">
             <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-gold">Experiência musical</p>
-            <h2 className="text-3xl font-black sm:text-5xl">Som, memória e presença em uma atmosfera próxima.</h2>
+            <h2 className="text-3xl font-black sm:text-5xl">Quando a música encontra um propósito</h2>
             <p className="mt-5 text-lg leading-8 text-white/[0.72]">
               Banda cover, participação especial de Rodolfo Lauber, estrutura preparada para uma noite marcante e ambiente intimista para quem quer viver a música de perto.
             </p>
@@ -472,8 +469,8 @@ export function HomePage() {
                     <p className="mt-2 font-bold text-ember">{tier.availability}</p>
                   </div>
                   <div className="rounded-md bg-paper px-5 py-4 text-center">
-                    <p className="text-xs font-black uppercase text-ink/[0.55]">Contribuição mínima</p>
-                    <p className="text-3xl font-black text-ember">{tier.price}</p>
+                    <p className="text-xs font-black uppercase text-ink/[0.55]">Condição</p>
+                    <p className="text-3xl font-black text-ember">A combinar</p>
                   </div>
                 </div>
                 <ul className="mt-6 grid gap-3">
@@ -492,7 +489,7 @@ export function HomePage() {
             ))}
           </div>
           <div className="mt-10">
-            <SponsorForm />
+            <SponsorContact />
           </div>
         </div>
       </section>
@@ -561,7 +558,7 @@ export function HomePage() {
 
       <footer className="bg-black px-4 py-8 text-white/70 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 Catedral Experience – Recomeços. Todos os direitos reservados.</p>
+          <p>© 2026 <BrandName /> – Recomeços. Todos os direitos reservados.</p>
           <p className="max-w-2xl text-sm">{site.shortLegalNotice}</p>
         </div>
       </footer>

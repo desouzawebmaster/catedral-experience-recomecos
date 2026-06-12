@@ -10,7 +10,7 @@ const eventJsonLd = {
   startDate: site.eventDateIso,
   eventStatus: "https://schema.org/EventScheduled",
   eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-  image: [`${site.url}/assets/hero-band-stage.jpg`],
+  image: [`${site.url}/assets/hero-image.png`],
   url: site.url,
   location: {
     "@type": "Place",

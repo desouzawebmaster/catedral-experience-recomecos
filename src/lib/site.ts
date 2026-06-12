@@ -24,7 +24,7 @@ export const site = {
     city: "São Paulo"
   },
   assets: {
-    hero: "/assets/hero-band-stage.jpg",
+    hero: "/assets/hero-image.png",
     causeHero: "/assets/social-cause-2.jpeg",
     experienceHero: "/assets/hero-singer.png",
     venue: "/assets/place-1.jpeg",
