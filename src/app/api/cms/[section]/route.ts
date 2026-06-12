@@ -18,7 +18,7 @@ const fallbackData = {
 
 export async function GET(_request: Request, { params }: { params: { section: string } }) {
   if (!isCmsSection(params.section)) {
-    return NextResponse.json({ error: "Secao invalida." }, { status: 404 });
+    return NextResponse.json({ error: "Seção inválida." }, { status: 404 });
   }
 
   try {
@@ -31,7 +31,7 @@ export async function GET(_request: Request, { params }: { params: { section: st
 
 export async function PUT(request: Request, { params }: { params: { section: string } }) {
   if (!isCmsSection(params.section)) {
-    return NextResponse.json({ error: "Secao invalida." }, { status: 404 });
+    return NextResponse.json({ error: "Seção inválida." }, { status: 404 });
   }
 
   if (!(await ensureAdmin(request))) {
@@ -47,7 +47,7 @@ export async function PUT(request: Request, { params }: { params: { section: str
     return NextResponse.json(
       {
         error:
-          "Nao foi possivel salvar no disco. Em producao na Vercel, uploads e JSON locais nao sao persistentes; use esta estrutura localmente ou migre para Supabase Storage."
+          "Não foi possível salvar no disco. Em produção na Vercel, arquivos enviados e JSON locais não são persistentes; use esta estrutura localmente ou migre para Supabase Storage."
       },
       { status: 500 }
     );

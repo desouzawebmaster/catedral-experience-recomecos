@@ -27,7 +27,7 @@
     "id": "violao",
     "type": "image",
     "src": "/assets/hero-violao.jpeg",
-    "title": "Violao",
+    "title": "Violão",
     "active": true,
     "position": 4
   },
@@ -52,7 +52,7 @@
     "type": "video",
     "src": "/assets/studio.mp4",
     "poster": "/assets/place-1.jpeg",
-    "title": "Video do espaco",
+    "title": "Vídeo do espaço",
     "active": true,
     "position": 7
   }

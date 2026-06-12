@@ -36,19 +36,19 @@ const navItems = [
   { label: "Ingressos", href: "#ingressos" },
   { label: "Convidados", href: "#convidados" },
   { label: "Galeria", href: "#galeria" },
-  { label: "Patrocinios", href: "#patrocinios" }
+  { label: "Patrocínios", href: "#patrocinios" }
 ];
 
 const eventHighlights: Array<[string, LucideIcon]> = [
-  ["Tributo a Banda Catedral", Music2],
+  ["Tributo à Banda Catedral", Music2],
   ["Evento beneficente", HeartHandshake],
-  ["Experiencia intimista", Sparkles],
+  ["Experiência intimista", Sparkles],
   ["Capacidade limitada", Users]
 ];
 
 const tickets = [
   {
-    name: "Ingresso Recomecos",
+    name: "Ingresso Recomeços",
     price: "R$100,00",
     detail: "Para quem deseja contribuir diretamente com as causas do evento.",
     action: "Comprar na Sympla",
@@ -57,7 +57,7 @@ const tickets = [
   {
     name: "Ingresso Juntos",
     price: "R$70,00 por pessoa",
-    detail: "Valido apenas para compra de dois ingressos. Ideal para compartilhar a experiencia.",
+    detail: "Válido apenas para compra de dois ingressos. Ideal para compartilhar a experiência.",
     action: "Comprar na Sympla",
     href: site.symplaUrl,
     featured: true
@@ -65,9 +65,9 @@ const tickets = [
   {
     name: "Ingresso Pela Causa",
     price: "R$150,00",
-    detail: "Cota especial de contribuicao direta, nao disponivel na Sympla.",
+    detail: "Cota especial de contribuição direta, não disponível na Sympla.",
     action: "Comprar pelo WhatsApp",
-    href: whatsappUrl("Ola! Quero comprar o Ingresso Pela Causa do Catedral Experience - Recomecos.")
+    href: whatsappUrl("Olá! Quero comprar o Ingresso Pela Causa do Catedral Experience - Recomeços.")
   }
 ];
 
@@ -75,12 +75,12 @@ const sponsorTiers = [
   {
     name: "Patrocinador Master",
     availability: "Apenas 1 vaga",
-    benefits: ["Destaque maximo no site oficial", "Presenca prioritaria em Instagram e lives", "Logo em banner do evento", "Mencoes nas redes sociais"]
+    benefits: ["Destaque máximo no site oficial", "Presença prioritária em Instagram e lives", "Logo em banner do evento", "Menções nas redes sociais"]
   },
   {
     name: "Patrocinador Parceiro",
-    availability: "Ate 8 vagas",
-    benefits: ["Logo na area de parceiros", "Divulgacao nas redes sociais", "Citacao em conteudos do evento", "Associacao direta a causa social"]
+    availability: "Até 8 vagas",
+    benefits: ["Logo na área de parceiros", "Divulgação nas redes sociais", "Citação em conteúdos do evento", "Associação direta à causa social"]
   }
 ];
 
@@ -114,7 +114,7 @@ function Countdown() {
   const seconds = Math.floor((distance / 1000) % 60);
 
   return (
-    <div className="grid grid-cols-4 gap-2 rounded-lg border border-white/15 bg-white/10 p-2 backdrop-blur sm:max-w-xl sm:gap-3 sm:p-3" aria-label="Contador regressivo para 14 de novembro de 2026 as 20h">
+    <div className="grid grid-cols-4 gap-2 rounded-lg border border-white/15 bg-white/10 p-2 backdrop-blur sm:max-w-xl sm:gap-3 sm:p-3" aria-label="Contador regressivo para 14 de novembro de 2026 às 20h">
       {[
         ["Dias", days],
         ["Horas", hours],
@@ -270,7 +270,7 @@ export function HomePage() {
                 </a>
               ))}
               <a href={site.musicianAreaUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-md border border-gold/50 px-3 py-2 text-sm font-black text-gold transition hover:bg-gold hover:text-ink">
-                Area do Musico
+                Área do Músico
                 <ExternalLink size={15} />
               </a>
             </div>
@@ -279,16 +279,16 @@ export function HomePage() {
       </header>
 
       <section id="topo" className="relative min-h-screen overflow-hidden pt-20">
-        <Image src={site.assets.hero} alt="Catedral Experience - Recomecos" fill priority className="object-cover object-center" sizes="100vw" />
+        <Image src={site.assets.hero} alt="Catedral Experience - Recomeços" fill priority className="object-cover object-center" sizes="100vw" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/[0.55] to-ink" />
         <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] max-w-7xl flex-col justify-center px-4 pb-12 pt-16 sm:px-6 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="max-w-4xl">
             <p className="mb-4 inline-flex items-center gap-2 rounded-md bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.24em] text-gold backdrop-blur">
               <CalendarDays size={16} />
-              14/11/2026 as 20:00
+              14/11/2026 às 20:00
             </p>
             <h1 className="text-5xl font-black leading-none text-white sm:text-7xl lg:text-8xl">
-              <BrandName /> <span className="block font-black">- Recomecos</span>
+              <BrandName /> <span className="block font-black">- Recomeços</span>
             </h1>
             <p className="mt-5 text-2xl font-black text-gold sm:text-4xl">{site.slogan}</p>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-white/[0.82] sm:text-xl">{site.description}</p>
@@ -316,7 +316,7 @@ export function HomePage() {
             <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-ember">Sobre o evento</p>
             <h2 className="text-3xl font-black text-ink sm:text-5xl">Um som de qualidade, uma atitude de amor!</h2>
             <p className="mt-5 text-lg leading-8 text-ink/[0.72]">
-              O Catedral Experience - Recomecos celebra o repertorio da Banda Catedral em uma experiencia independente, intimista e beneficente, criada para aproximar musica, memoria afetiva e acao social concreta.
+              O Catedral Experience - Recomeços celebra o repertório da Banda Catedral em uma experiência independente, intimista e beneficente, criada para aproximar música, memória afetiva e ação social concreta.
             </p>
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               {eventHighlights.map(([text, Icon]) => (
@@ -333,19 +333,19 @@ export function HomePage() {
 
       <section id="causa" className="bg-white px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader eyebrow="A causa" title="Duas frentes sociais, um mesmo recomeco." text="Parte da arrecadacao sera direcionada a apoio emergencial e arrecadacao de alimentos para familias em vulnerabilidade em Sao Paulo." />
+          <SectionHeader eyebrow="A causa" title="Duas frentes sociais, um mesmo recomeço." text="Parte da arrecadação será direcionada a apoio emergencial e arrecadação de alimentos para famílias em vulnerabilidade em São Paulo." />
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
             <Mosaic images={causeImages} label="Causa social" />
             <div className="grid gap-5">
               <div className="rounded-lg border border-ink/10 bg-paper p-6">
                 <HeartHandshake className="mb-4 text-ember" size={34} />
-                <h3 className="text-2xl font-black text-ink">Familia em Recomeco</h3>
-                <p className="mt-3 leading-7 text-ink/70">Parte da arrecadacao ajudara uma familia que sofreu um golpe financeiro e esta reconstruindo sua vida com dignidade, seguranca e esperanca.</p>
+                <h3 className="text-2xl font-black text-ink">Família em Recomeço</h3>
+                <p className="mt-3 leading-7 text-ink/70">Parte da arrecadação ajudará uma família que sofreu um golpe financeiro e está reconstruindo sua vida com dignidade, segurança e esperança.</p>
               </div>
               <div className="rounded-lg border border-ink/10 bg-paper p-6">
                 <Utensils className="mb-4 text-moss" size={34} />
-                <h3 className="text-2xl font-black text-ink">Arrecadacao de Alimentos</h3>
-                <p className="mt-3 leading-7 text-ink/70">O evento tambem impulsiona a arrecadacao de alimentos para familias em situacao de vulnerabilidade em Sao Paulo.</p>
+                <h3 className="text-2xl font-black text-ink">Arrecadação de Alimentos</h3>
+                <p className="mt-3 leading-7 text-ink/70">O evento também impulsiona a arrecadação de alimentos para famílias em situação de vulnerabilidade em São Paulo.</p>
                 <div className="-mb-10 ml-auto mt-6 w-fit rounded-lg bg-ember px-5 py-4 text-white shadow-xl">
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-white/75">Meta</p>
                   <p className="text-2xl font-black">200+ Kg de alimentos</p>
@@ -390,7 +390,7 @@ export function HomePage() {
 
       <section id="ingressos" className="bg-white px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader eyebrow="Ingressos" title="Escolha sua forma de participar." text="Garanta seu lugar e contribua para as causas sociais do Catedral Experience - Recomecos." />
+          <SectionHeader eyebrow="Ingressos" title="Escolha sua forma de participar." text="Garanta seu lugar e contribua para as causas sociais do Catedral Experience - Recomeços." />
           <div className="grid gap-5 lg:grid-cols-3">
             {tickets.map((ticket) => (
               <div key={ticket.name} className={`relative rounded-lg border p-6 shadow-sm ${ticket.featured ? "border-ember bg-ink text-white shadow-glow" : "border-ink/10 bg-paper text-ink"}`}>
@@ -411,10 +411,10 @@ export function HomePage() {
       <section className="bg-ink px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2 lg:items-center">
           <div className="text-white">
-            <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-gold">Experiencia musical</p>
-            <h2 className="text-3xl font-black sm:text-5xl">Quando a musica encontra um proposito</h2>
+            <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-gold">Experiência musical</p>
+            <h2 className="text-3xl font-black sm:text-5xl">Quando a música encontra um propósito</h2>
             <p className="mt-5 text-lg leading-8 text-white/[0.72]">
-              Banda cover, convidados especiais, estrutura preparada para uma noite marcante e ambiente intimista para quem quer viver a musica de perto.
+              Banda cover, convidados especiais, estrutura preparada para uma noite marcante e ambiente intimista para quem quer viver a música de perto.
             </p>
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               {["Banda cover", "Convidados especiais", "Estrutura do evento", "Ambiente intimista"].map((item) => (
@@ -425,13 +425,13 @@ export function HomePage() {
               ))}
             </div>
           </div>
-          <Mosaic images={experienceImages} label="Experiencia musical" />
+          <Mosaic images={experienceImages} label="Experiência musical" />
         </div>
       </section>
 
       <section id="convidados" className="bg-paper px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader eyebrow="Convidados Especiais" title="Presencas que ampliam a noite." text="Participacoes especiais preparadas para somar historia, emocao e proposito ao evento." />
+          <SectionHeader eyebrow="Convidados Especiais" title="Presenças que ampliam a noite." text="Participações especiais preparadas para somar história, emoção e propósito ao evento." />
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {guests.map((guest) => (
               <article key={guest.id} className="overflow-hidden rounded-lg bg-white shadow-lg">
@@ -450,7 +450,7 @@ export function HomePage() {
 
       <section id="galeria" className="bg-paper px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader eyebrow="Galeria" title="Fotos e videos preparados para crescer." text="Uma galeria moderna em formato masonry para registrar ensaios, bastidores, parceiros, videos e momentos do evento." />
+          <SectionHeader eyebrow="Galeria" title="Fotos e vídeos preparados para crescer." text="Uma galeria moderna em formato masonry para registrar ensaios, bastidores, parceiros, vídeos e momentos do evento." />
           <Gallery />
         </div>
       </section>
@@ -458,10 +458,10 @@ export function HomePage() {
       <section id="patrocinios" className="bg-ink px-4 py-16 text-white sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto mb-10 max-w-4xl text-center">
-            <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-gold">Patrocinios</p>
-            <h2 className="text-4xl font-black sm:text-6xl">Sua marca impulsionando recomecos.</h2>
+            <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-gold">Patrocínios</p>
+            <h2 className="text-4xl font-black sm:text-6xl">Sua marca impulsionando recomeços.</h2>
             <p className="mt-5 text-lg leading-8 text-white/[0.72]">
-              O patrocinio conecta sua empresa a um evento com presenca digital, visibilidade local, conteudo em redes sociais e impacto social transparente.
+              O patrocínio conecta sua empresa a um evento com presença digital, visibilidade local, conteúdo em redes sociais e impacto social transparente.
             </p>
           </div>
           <div className="mb-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -480,7 +480,7 @@ export function HomePage() {
                     <p className="mt-2 font-bold text-ember">{tier.availability}</p>
                   </div>
                   <div className="rounded-md bg-paper px-5 py-4 text-center">
-                    <p className="text-xs font-black uppercase text-ink/[0.55]">Condicao</p>
+                    <p className="text-xs font-black uppercase text-ink/[0.55]">Condição</p>
                     <p className="text-3xl font-black text-ember">A combinar</p>
                   </div>
                 </div>
@@ -492,7 +492,7 @@ export function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <a href={whatsappUrl(`Ola! Quero ser ${tier.name} do Catedral Experience - Recomecos.`)} target="_blank" rel="noreferrer" className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-ember px-5 py-3 font-black text-white transition hover:bg-ink">
+                <a href={whatsappUrl(`Olá! Quero ser ${tier.name} do Catedral Experience - Recomeços.`)} target="_blank" rel="noreferrer" className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-ember px-5 py-3 font-black text-white transition hover:bg-ink">
                   <HeartHandshake size={20} />
                   Quero ser patrocinador
                 </a>
@@ -511,7 +511,7 @@ export function HomePage() {
 
       <section className="bg-ink px-4 py-14 text-white sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-6 sm:grid-cols-3">
-          <a href={whatsappUrl("Ola! Quero falar sobre o Catedral Experience - Recomecos.")} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-lg border border-white/[0.12] bg-white/[0.08] p-5 font-black">
+          <a href={whatsappUrl("Olá! Quero falar sobre o Catedral Experience - Recomeços.")} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-lg border border-white/[0.12] bg-white/[0.08] p-5 font-black">
             <Users className="text-gold" />
             WhatsApp
           </a>
@@ -528,7 +528,7 @@ export function HomePage() {
 
       <footer className="bg-black px-4 py-8 text-white/70 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 <BrandName /> - Recomecos. Todos os direitos reservados.</p>
+          <p>© 2026 <BrandName /> - Recomeços. Todos os direitos reservados.</p>
           <p className="max-w-2xl text-sm">{site.shortLegalNotice}</p>
         </div>
       </footer>

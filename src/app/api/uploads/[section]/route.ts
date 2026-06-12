@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: Request, { params }: { params: { section: string } }) {
   if (!isCmsSection(params.section)) {
-    return NextResponse.json({ error: "Secao invalida." }, { status: 404 });
+    return NextResponse.json({ error: "Seção inválida." }, { status: 404 });
   }
 
   if (!(await ensureAdmin(request))) {
@@ -19,7 +19,7 @@ export async function POST(request: Request, { params }: { params: { section: st
   const file = form.get("file");
 
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Arquivo nao enviado." }, { status: 400 });
+    return NextResponse.json({ error: "Arquivo não enviado." }, { status: 400 });
   }
 
   const filename = safeFileName(file.name);
@@ -33,7 +33,7 @@ export async function POST(request: Request, { params }: { params: { section: st
     return NextResponse.json(
       {
         error:
-          "Nao foi possivel salvar o upload no disco. Na Vercel este armazenamento nao e persistente; mantenha a estrutura para uso local ou migre para Supabase Storage."
+          "Não foi possível salvar o arquivo enviado no disco. Na Vercel, este armazenamento não é persistente; mantenha a estrutura para uso local ou migre para Supabase Storage."
       },
       { status: 500 }
     );

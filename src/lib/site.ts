@@ -1,5 +1,5 @@
 export const site = {
-  name: "Catedral Experience - Recomecos",
+  name: "Catedral Experience - Recomeços",
   displayName: "Catedral Experience – Recomeços",
   slogan: "Mais que um show. Um recomeço.",
   description: "Uma noite especial de música, propósito e impacto social.",

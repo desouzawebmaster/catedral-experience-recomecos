@@ -17,7 +17,7 @@ type Tab = CmsSection;
 const adminEmail = "desouza.webmaster@gmail.com";
 
 const tabs: Array<{ id: Tab; label: string }> = [
-  { id: "musicos", label: "Musicos" },
+  { id: "musicos", label: "Músicos" },
   { id: "convidados", label: "Convidados" },
   { id: "galeria", label: "Galeria" },
   { id: "patrocinadores", label: "Patrocinadores" }
@@ -43,7 +43,7 @@ function imagePreview(src: string, alt: string) {
 
   return (
     <div className="relative h-24 w-24 overflow-hidden rounded-md bg-paper">
-      <Image src={src} alt={alt || "Preview"} fill className="object-cover object-top" sizes="96px" />
+      <Image src={src} alt={alt || "Prévia"} fill className="object-cover object-top" sizes="96px" />
     </div>
   );
 }
@@ -66,7 +66,7 @@ export function AdminPanel() {
   useEffect(() => {
     if (!supabaseReady) {
       setAuthState("signed-out");
-      setMessage("Configure as variaveis do Supabase para ativar login no admin.");
+      setMessage("Configure as variáveis do Supabase para ativar o login no admin.");
       return;
     }
 
@@ -74,13 +74,13 @@ export function AdminPanel() {
     supabase.auth.getSession().then(({ data }) => {
       const isAdmin = data.session?.user.email === adminEmail;
       setAuthState(isAdmin ? "signed-in" : "signed-out");
-      if (data.session && !isAdmin) setMessage("Este acesso e exclusivo do administrador do site.");
+      if (data.session && !isAdmin) setMessage("Este acesso é exclusivo do administrador do site.");
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       const isAdmin = session?.user.email === adminEmail;
       setAuthState(isAdmin ? "signed-in" : "signed-out");
-      if (session && !isAdmin) setMessage("Este acesso e exclusivo do administrador do site.");
+      if (session && !isAdmin) setMessage("Este acesso é exclusivo do administrador do site.");
     });
 
     return () => listener.subscription.unsubscribe();
@@ -125,11 +125,11 @@ export function AdminPanel() {
       const masterCount = current.filter((sponsor) => sponsor.active && sponsor.tier === "master").length;
       const partnerCount = current.filter((sponsor) => sponsor.active && sponsor.tier === "parceiro").length;
       if (masterCount > 1) {
-        setMessage("So pode existir 1 Patrocinador Master ativo.");
+        setMessage("Só pode existir 1 Patrocinador Master ativo.");
         return;
       }
       if (partnerCount > 8) {
-        setMessage("So podem existir ate 8 Patrocinadores Parceiros ativos.");
+        setMessage("Só podem existir até 8 Patrocinadores Parceiros ativos.");
         return;
       }
     }
@@ -145,11 +145,11 @@ export function AdminPanel() {
 
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
-      setMessage(result.error || "Nao foi possivel salvar.");
+      setMessage(result.error || "Não foi possível salvar.");
       return;
     }
 
-    setMessage("Alteracoes salvas no JSON local do projeto.");
+    setMessage("Alterações salvas no JSON local do projeto.");
   }
 
   async function upload(section: CmsSection, file: File) {
@@ -165,11 +165,11 @@ export function AdminPanel() {
 
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
-      setMessage(result.error || "Nao foi possivel enviar o arquivo.");
+      setMessage(result.error || "Não foi possível enviar o arquivo.");
       return "";
     }
 
-    setMessage("Upload enviado. Clique em salvar para gravar o JSON.");
+    setMessage("Arquivo enviado. Clique em salvar para gravar o JSON.");
     return result.url as string;
   }
 
@@ -185,7 +185,7 @@ export function AdminPanel() {
 
     if (email.trim().toLowerCase() !== adminEmail) {
       await getSupabaseClient().auth.signOut();
-      setMessage("Este acesso e exclusivo do administrador do site.");
+      setMessage("Este acesso é exclusivo do administrador do site.");
       return;
     }
 
@@ -217,7 +217,7 @@ export function AdminPanel() {
           <div>
             <p className="mb-2 flex items-center gap-2 text-sm font-black uppercase tracking-[0.22em] text-ember">
               <ShieldCheck size={18} />
-              Administracao
+              Administração
             </p>
             <h1 className="text-3xl font-black sm:text-5xl">CMS local do site</h1>
           </div>
@@ -235,7 +235,7 @@ export function AdminPanel() {
         </div>
 
         <div className="mb-5 rounded-md border border-amber-300 bg-amber-50 p-4 text-sm font-bold leading-6 text-ink/75">
-          Este CMS salva arquivos JSON e uploads dentro do projeto. Localmente isso funciona como persistencia no repositorio. Na Vercel, arquivos enviados em producao nao sao persistentes entre deploys; a estrutura esta pronta para futura migracao para Supabase Storage ou outro storage externo.
+          Este CMS salva arquivos JSON e arquivos enviados dentro do projeto. Localmente, isso funciona como persistência no repositório. Na Vercel, arquivos enviados em produção não são persistentes entre deploys; a estrutura está pronta para futura migração para Supabase Storage ou outro armazenamento externo.
         </div>
 
         {message ? <p className="mb-5 rounded-md border border-ember/20 bg-white p-4 font-bold text-ink/75">{message}</p> : null}
@@ -265,16 +265,16 @@ export function AdminPanel() {
             </div>
 
             {tab === "musicos" ? (
-              <CmsBlock title="Musicos" onAdd={() => setMusicians((current) => withPositions([...current, { id: newId("musico"), name: "Novo musico", role: "", image: "", alt: "", active: true, position: current.length + 1 }]))} onSave={() => saveSection("musicos", musicians)}>
+              <CmsBlock title="Músicos" onAdd={() => setMusicians((current) => withPositions([...current, { id: newId("musico"), name: "Novo músico", role: "", image: "", alt: "", active: true, position: current.length + 1 }]))} onSave={() => saveSection("musicos", musicians)}>
                 {musicians.map((item, index) => (
                   <div key={item.id} {...dragHandlers(musicians, setMusicians, index)} className="grid gap-4 rounded-lg border border-ink/10 bg-white p-4 lg:grid-cols-[32px_96px_1fr_auto] lg:items-center">
                     <GripVertical className="cursor-grab text-ink/35" />
                     {imagePreview(item.image, item.alt)}
                     <div className="grid gap-3 md:grid-cols-2">
                       <TextInput label="Nome" value={item.name} onChange={(value) => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, name: value } : row)))} />
-                      <TextInput label="Funcao" value={item.role} onChange={(value) => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, role: value } : row)))} />
+                      <TextInput label="Função" value={item.role} onChange={(value) => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, role: value } : row)))} />
                       <TextInput label="Imagem" value={item.image} onChange={(value) => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, image: value } : row)))} />
-                      <TextInput label="Alt" value={item.alt} onChange={(value) => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, alt: value } : row)))} />
+                      <TextInput label="Texto alternativo" value={item.alt} onChange={(value) => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, alt: value } : row)))} />
                     </div>
                     <RowActions active={item.active} onToggle={() => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, active: !row.active } : row)))} onUpload={(event) => uploadAndSet(event, "musicos", (url) => setMusicians((items) => items.map((row) => (row.id === item.id ? { ...row, image: url } : row))))} onDelete={() => setMusicians((items) => withPositions(items.filter((row) => row.id !== item.id)))} />
                   </div>
@@ -290,10 +290,10 @@ export function AdminPanel() {
                     {imagePreview(item.image, item.alt)}
                     <div className="grid gap-3">
                       <TextInput label="Nome" value={item.name} onChange={(value) => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, name: value } : row)))} />
-                      <TextInput label="Descricao" value={item.description} onChange={(value) => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, description: value } : row)))} />
+                      <TextInput label="Descrição" value={item.description} onChange={(value) => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, description: value } : row)))} />
                       <div className="grid gap-3 md:grid-cols-2">
                         <TextInput label="Foto" value={item.image} onChange={(value) => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, image: value } : row)))} />
-                        <TextInput label="Alt" value={item.alt} onChange={(value) => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, alt: value } : row)))} />
+                        <TextInput label="Texto alternativo" value={item.alt} onChange={(value) => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, alt: value } : row)))} />
                       </div>
                     </div>
                     <RowActions active={item.active} onToggle={() => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, active: !row.active } : row)))} onUpload={(event) => uploadAndSet(event, "convidados", (url) => setGuests((items) => items.map((row) => (row.id === item.id ? { ...row, image: url } : row))))} onDelete={() => setGuests((items) => withPositions(items.filter((row) => row.id !== item.id)))} />
@@ -303,22 +303,22 @@ export function AdminPanel() {
             ) : null}
 
             {tab === "galeria" ? (
-              <CmsBlock title="Galeria" onAdd={() => setGallery((current) => withPositions([...current, { id: newId("midia"), type: "image", src: "", poster: "", title: "Nova midia", active: true, position: current.length + 1 }]))} onSave={() => saveSection("galeria", gallery)}>
+              <CmsBlock title="Galeria" onAdd={() => setGallery((current) => withPositions([...current, { id: newId("midia"), type: "image", src: "", poster: "", title: "Nova mídia", active: true, position: current.length + 1 }]))} onSave={() => saveSection("galeria", gallery)}>
                 {gallery.map((item, index) => (
                   <div key={item.id} {...dragHandlers(gallery, setGallery, index)} className="grid gap-4 rounded-lg border border-ink/10 bg-white p-4 lg:grid-cols-[32px_120px_1fr_auto] lg:items-center">
                     <GripVertical className="cursor-grab text-ink/35" />
                     {item.type === "video" ? <video src={item.src} poster={item.poster} className="h-24 w-32 rounded-md bg-ink object-cover" muted /> : imagePreview(item.src, item.title)}
                     <div className="grid gap-3 md:grid-cols-2">
-                      <TextInput label="Titulo" value={item.title} onChange={(value) => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, title: value } : row)))} />
+                      <TextInput label="Título" value={item.title} onChange={(value) => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, title: value } : row)))} />
                       <label className="text-sm font-bold">
                         Tipo
                         <select value={item.type} onChange={(event) => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, type: event.target.value as "image" | "video" } : row)))} className="mt-2 w-full rounded-md border border-ink/15 bg-paper px-4 py-3">
                           <option value="image">Imagem</option>
-                          <option value="video">Video</option>
+                          <option value="video">Vídeo</option>
                         </select>
                       </label>
                       <TextInput label="Arquivo" value={item.src} onChange={(value) => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, src: value } : row)))} />
-                      <TextInput label="Poster do video" value={item.poster || ""} onChange={(value) => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, poster: value } : row)))} />
+                      <TextInput label="Capa do vídeo" value={item.poster || ""} onChange={(value) => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, poster: value } : row)))} />
                     </div>
                     <RowActions active={item.active} onToggle={() => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, active: !row.active } : row)))} onUpload={(event) => uploadAndSet(event, "galeria", (url) => setGallery((items) => items.map((row) => (row.id === item.id ? { ...row, src: url } : row))))} onDelete={() => setGallery((items) => withPositions(items.filter((row) => row.id !== item.id)))} />
                   </div>
@@ -341,7 +341,7 @@ export function AdminPanel() {
                       <TextInput label="Facebook" value={item.facebook} onChange={(value) => setSponsors((items) => items.map((row) => (row.id === item.id ? { ...row, facebook: value } : row)))} />
                       <TextInput label="WhatsApp" value={item.whatsapp} onChange={(value) => setSponsors((items) => items.map((row) => (row.id === item.id ? { ...row, whatsapp: value } : row)))} />
                       <label className="text-sm font-bold">
-                        Nivel
+                        Nível
                         <select value={item.tier} onChange={(event) => setSponsors((items) => items.map((row) => (row.id === item.id ? { ...row, tier: event.target.value as "master" | "parceiro" } : row)))} className="mt-2 w-full rounded-md border border-ink/15 bg-paper px-4 py-3">
                           <option value="master">Patrocinador Master</option>
                           <option value="parceiro">Patrocinador Parceiro</option>
@@ -380,7 +380,7 @@ function CmsBlock({ title, children, onAdd, onSave }: { title: string; children:
           </button>
           <button onClick={onSave} type="button" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-ember px-4 py-2 font-black text-white">
             <Save size={18} />
-            Salvar JSON
+            Salvar alterações
           </button>
         </div>
       </div>
@@ -407,7 +407,7 @@ function RowActions({ active, onToggle, onUpload, onDelete }: { active: boolean;
       </button>
       <label className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-ink/15 px-3 py-2 text-sm font-black text-ink">
         <ImagePlus size={16} />
-        Upload
+        Enviar arquivo
         <input type="file" accept="image/*,video/*" className="hidden" onChange={onUpload} />
       </label>
       <button onClick={onDelete} type="button" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-ember px-3 py-2 text-sm font-black text-ember">

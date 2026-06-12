@@ -28,10 +28,10 @@
   },
   {
     "id": "violao",
-    "name": "Evento - Violao",
-    "role": "Violao e voz",
+    "name": "Evento - Violão",
+    "role": "Violão e voz",
     "image": "/assets/hero-violao.jpeg",
-    "alt": "Musico tocando violao",
+    "alt": "Músico tocando violão",
     "active": true,
     "position": 4
   },
