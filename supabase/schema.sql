@@ -15,32 +15,34 @@ drop policy if exists "Admin can update CMS sections" on public.cms_sections;
 drop policy if exists "Admin can delete CMS sections" on public.cms_sections;
 
 create policy "Public can read CMS sections"
-on public.cms_sections for select
+on public.cms_sections
+for select
 to anon, authenticated
 using (true);
 
 create policy "Admin can insert CMS sections"
-on public.cms_sections for insert
+on public.cms_sections
+for insert
 to authenticated
 with check ((auth.jwt() ->> 'email') = 'desouza.webmaster@gmail.com');
 
 create policy "Admin can update CMS sections"
-on public.cms_sections for update
+on public.cms_sections
+for update
 to authenticated
 using ((auth.jwt() ->> 'email') = 'desouza.webmaster@gmail.com')
 with check ((auth.jwt() ->> 'email') = 'desouza.webmaster@gmail.com');
 
 create policy "Admin can delete CMS sections"
-on public.cms_sections for delete
+on public.cms_sections
+for delete
 to authenticated
 using ((auth.jwt() ->> 'email') = 'desouza.webmaster@gmail.com');
 
 insert into public.cms_sections (section, items, updated_at)
-values
-(
+values (
   'musicos',
-  $json$
-  [
+  $json$[
     {
       "id": "vocal",
       "name": "Vocal",
@@ -95,14 +97,20 @@ values
       "active": true,
       "position": 6
     }
-  ]
-  $json$::jsonb,
+  ]$json$::jsonb,
   now()
-),
-(
+)
+on conflict (section) do update set
+  items = case
+    when public.cms_sections.items = '[]'::jsonb then excluded.items
+    else public.cms_sections.items
+  end,
+  updated_at = now();
+
+insert into public.cms_sections (section, items, updated_at)
+values (
   'convidados',
-  $json$
-  [
+  $json$[
     {
       "id": "rodolfo-lauber",
       "name": "Rodolfo Lauber",
@@ -112,14 +120,20 @@ values
       "active": true,
       "position": 1
     }
-  ]
-  $json$::jsonb,
+  ]$json$::jsonb,
   now()
-),
-(
+)
+on conflict (section) do update set
+  items = case
+    when public.cms_sections.items = '[]'::jsonb then excluded.items
+    else public.cms_sections.items
+  end,
+  updated_at = now();
+
+insert into public.cms_sections (section, items, updated_at)
+values (
   'galeria',
-  $json$
-  [
+  $json$[
     {
       "id": "hero",
       "type": "image",
@@ -177,14 +191,20 @@ values
       "active": true,
       "position": 7
     }
-  ]
-  $json$::jsonb,
+  ]$json$::jsonb,
   now()
-),
-(
+)
+on conflict (section) do update set
+  items = case
+    when public.cms_sections.items = '[]'::jsonb then excluded.items
+    else public.cms_sections.items
+  end,
+  updated_at = now();
+
+insert into public.cms_sections (section, items, updated_at)
+values (
   'patrocinadores',
-  $json$
-  [
+  $json$[
     {
       "id": "placeholder-master",
       "name": "Sua marca aqui",
@@ -211,15 +231,15 @@ values
       "active": true,
       "position": 2
     }
-  ]
-  $json$::jsonb,
+  ]$json$::jsonb,
   now()
 )
 on conflict (section) do update set
-  items = excluded.items,
-  updated_at = now()
-where public.cms_sections.items = '[]'::jsonb
-   or public.cms_sections.items is null;
+  items = case
+    when public.cms_sections.items = '[]'::jsonb then excluded.items
+    else public.cms_sections.items
+  end,
+  updated_at = now();
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
@@ -240,12 +260,14 @@ drop policy if exists "Admin can update site media" on storage.objects;
 drop policy if exists "Admin can delete site media" on storage.objects;
 
 create policy "Public can read site media"
-on storage.objects for select
+on storage.objects
+for select
 to anon, authenticated
 using (bucket_id = 'site-media');
 
 create policy "Admin can upload site media"
-on storage.objects for insert
+on storage.objects
+for insert
 to authenticated
 with check (
   bucket_id = 'site-media'
@@ -253,7 +275,8 @@ with check (
 );
 
 create policy "Admin can update site media"
-on storage.objects for update
+on storage.objects
+for update
 to authenticated
 using (
   bucket_id = 'site-media'
@@ -265,7 +288,8 @@ with check (
 );
 
 create policy "Admin can delete site media"
-on storage.objects for delete
+on storage.objects
+for delete
 to authenticated
 using (
   bucket_id = 'site-media'
