@@ -35,6 +35,13 @@ iframe {
   text-transform: none;
 }
 
+.gothic-restart {
+  font-family: "Cattedrale-Demo", "Old English Text MT", "UnifrakturMaguntia", Georgia, "Times New Roman", serif;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .masonry {
   column-count: 1;
   column-gap: 1rem;

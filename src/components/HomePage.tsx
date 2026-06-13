@@ -150,7 +150,19 @@ function Mosaic({ images, label }: { images: string[]; label: string }) {
     <div className="grid grid-cols-2 gap-3 sm:gap-4">
       {images.map((src, index) => (
         <div key={src} className={`relative overflow-hidden rounded-lg ${index === 0 ? "row-span-2 min-h-[34rem]" : "min-h-[16.25rem]"}`}>
-          <Image src={src} alt={`${label} ${index + 1}`} fill className="object-cover object-top" sizes="(max-width: 768px) 50vw, 25vw" />
+          <Image src={src} alt={`${label} ${index + 1}`} fill className="object-cover object-[center_18%]" sizes="(max-width: 768px) 50vw, 25vw" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function UniformImageGrid({ images, label }: { images: string[]; label: string }) {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+      {images.slice(0, 6).map((src, index) => (
+        <div key={src} className="relative aspect-[4/5] overflow-hidden rounded-lg bg-ink">
+          <Image src={src} alt={`${label} ${index + 1}`} fill className="object-cover object-[center_18%]" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw" />
         </div>
       ))}
     </div>
@@ -168,13 +180,22 @@ function StackedMusicians({ items }: { items: Musician[] }) {
   ];
 
   return (
-    <div className="relative min-h-[560px] overflow-hidden rounded-lg bg-ink shadow-xl">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(244,178,74,0.24),transparent_34%),linear-gradient(135deg,rgba(226,74,47,0.28),rgba(16,17,20,0.94))]" />
-      {items.map((item, index) => (
-        <div key={item.id} className={`absolute overflow-hidden rounded-lg border border-gold/50 bg-black shadow-2xl ${positions[index] ?? positions[index % positions.length]}`}>
-          <Image src={item.image} alt={item.alt} fill className="object-cover object-top" sizes="(max-width: 768px) 45vw, 18vw" />
-        </div>
-      ))}
+    <div className="overflow-hidden rounded-lg bg-ink shadow-xl">
+      <div className="grid grid-cols-2 gap-3 p-3 sm:hidden">
+        {items.map((item) => (
+          <div key={item.id} className="relative aspect-[3/4] overflow-hidden rounded-lg border border-gold/50 bg-black shadow-xl">
+            <Image src={item.image} alt={item.alt} fill className="object-cover object-[center_18%]" sizes="50vw" />
+          </div>
+        ))}
+      </div>
+      <div className="relative hidden min-h-[560px] sm:block">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(244,178,74,0.24),transparent_34%),linear-gradient(135deg,rgba(226,74,47,0.28),rgba(16,17,20,0.94))]" />
+        {items.map((item, index) => (
+          <div key={item.id} className={`absolute overflow-hidden rounded-lg border border-gold/50 bg-black shadow-2xl ${positions[index] ?? positions[index % positions.length]}`}>
+            <Image src={item.image} alt={item.alt} fill className="object-cover object-[center_18%]" sizes="(max-width: 1024px) 24vw, 18vw" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -313,7 +334,7 @@ export function HomePage() {
               14/11/2026 às 20:00
             </p>
             <h1 className="text-5xl font-black leading-none text-white sm:text-7xl lg:text-8xl">
-              <BrandName /> <span className="block font-black">- Recomeços</span>
+              <BrandName /> <span className="gothic-restart block">Recomeços</span>
             </h1>
             <p className="mt-5 text-2xl font-black text-gold sm:text-4xl">{site.slogan}</p>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-white/[0.82] sm:text-xl">{site.description}</p>
@@ -450,7 +471,7 @@ export function HomePage() {
               ))}
             </div>
           </div>
-          <Mosaic images={experienceImages} label="Experiência musical" />
+          <UniformImageGrid images={experienceImages} label="Experiência musical" />
         </div>
       </section>
 
