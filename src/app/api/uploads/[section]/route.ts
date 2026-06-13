@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
-import { ensureAdmin, getUploadPath, isCmsSection, safeFileName, uploadFolders } from "@/lib/cms-server";
+import { createClient } from "@supabase/supabase-js";
+import { ensureAdmin, isCmsSection, safeFileName, uploadFolders } from "@/lib/cms-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function supabaseFromRequest(request: Request) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const token = request.headers.get("authorization");
+
+  if (!url || !key) return null;
+  return createClient(url, key, token ? { global: { headers: { Authorization: token } } } : undefined);
+}
 
 export async function POST(request: Request, { params }: { params: { section: string } }) {
   if (!isCmsSection(params.section)) {
@@ -15,6 +23,11 @@ export async function POST(request: Request, { params }: { params: { section: st
     return NextResponse.json({ error: "Acesso restrito ao administrador." }, { status: 401 });
   }
 
+  const supabase = supabaseFromRequest(request);
+  if (!supabase) {
+    return NextResponse.json({ error: "Supabase não configurado." }, { status: 500 });
+  }
+
   const form = await request.formData();
   const file = form.get("file");
 
@@ -22,20 +35,14 @@ export async function POST(request: Request, { params }: { params: { section: st
     return NextResponse.json({ error: "Arquivo não enviado." }, { status: 400 });
   }
 
-  const filename = safeFileName(file.name);
-  const destination = getUploadPath(params.section, filename);
+  const path = `${uploadFolders[params.section]}/${safeFileName(file.name)}`;
+  const { error } = await supabase.storage.from("site-media").upload(path, file, {
+    cacheControl: "31536000",
+    upsert: true
+  });
 
-  try {
-    await fs.mkdir(path.dirname(destination), { recursive: true });
-    await fs.writeFile(destination, Buffer.from(await file.arrayBuffer()));
-    return NextResponse.json({ url: `/uploads/${uploadFolders[params.section]}/${filename}` });
-  } catch {
-    return NextResponse.json(
-      {
-        error:
-          "Não foi possível salvar o arquivo enviado no disco. Na Vercel, este armazenamento não é persistente; mantenha a estrutura para uso local ou migre para Supabase Storage."
-      },
-      { status: 500 }
-    );
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const { data } = supabase.storage.from("site-media").getPublicUrl(path);
+  return NextResponse.json({ url: data.publicUrl });
 }

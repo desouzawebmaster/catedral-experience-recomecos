@@ -24,6 +24,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { site, whatsappUrl } from "@/lib/site";
 import { sortActive, type GalleryMedia, type Guest, type Musician, type Sponsor } from "@/lib/cms";
+import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import musiciansData from "@/data/musicos.json";
 import guestsData from "@/data/convidados.json";
 import galleryData from "@/data/galeria.json";
@@ -93,10 +94,10 @@ const causeImages = [
 ];
 
 const placeImages = ["/assets/place-1.jpeg", "/assets/place-2.png", "/assets/place-3.png"];
-const musicians = sortActive(musiciansData as Musician[]);
-const guests = sortActive(guestsData as Guest[]);
-const galleryItems = sortActive(galleryData as GalleryMedia[]);
-const sponsors = sortActive(sponsorsData as Sponsor[]);
+const fallbackMusicians = sortActive(musiciansData as Musician[]);
+const fallbackGuests = sortActive(guestsData as Guest[]);
+const fallbackGalleryItems = sortActive(galleryData as GalleryMedia[]);
+const fallbackSponsors = sortActive(sponsorsData as Sponsor[]);
 
 function Countdown() {
   const target = useMemo(() => new Date(site.eventDateIso).getTime(), []);
@@ -178,13 +179,13 @@ function StackedMusicians({ items }: { items: Musician[] }) {
   );
 }
 
-function Gallery() {
+function Gallery({ items }: { items: GalleryMedia[] }) {
   const [active, setActive] = useState<GalleryMedia | null>(null);
 
   return (
     <>
       <div className="masonry">
-        {galleryItems.map((item) => (
+        {items.map((item) => (
           <button key={item.id} onClick={() => setActive(item)} className="group relative mb-4 block w-full overflow-hidden rounded-lg bg-ink text-left shadow-lg" type="button">
             <Image src={item.poster || item.src} alt={item.title} width={900} height={640} className="h-auto w-full object-cover object-top transition duration-500 group-hover:scale-105" />
             <span className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/[0.85] to-transparent p-4 text-sm font-black text-white">
@@ -215,9 +216,9 @@ function Gallery() {
   );
 }
 
-function SponsorsShowcase() {
-  const master = sponsors.find((sponsor) => sponsor.tier === "master");
-  const partners = sponsors.filter((sponsor) => sponsor.tier === "parceiro");
+function SponsorsShowcase({ items }: { items: Sponsor[] }) {
+  const master = items.find((sponsor) => sponsor.tier === "master");
+  const partners = items.filter((sponsor) => sponsor.tier === "parceiro");
 
   return (
     <div className="grid gap-6">
@@ -250,7 +251,31 @@ function SponsorsShowcase() {
 
 export function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [musicians, setMusicians] = useState<Musician[]>(fallbackMusicians);
+  const [guests, setGuests] = useState<Guest[]>(fallbackGuests);
+  const [galleryItems, setGalleryItems] = useState<GalleryMedia[]>(fallbackGalleryItems);
+  const [sponsors, setSponsors] = useState<Sponsor[]>(fallbackSponsors);
   const experienceImages = musicians.map((item) => item.image);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    getSupabaseClient()
+      .from("cms_sections")
+      .select("section, items")
+      .in("section", ["musicos", "convidados", "galeria", "patrocinadores"])
+      .then(({ data }) => {
+        if (!data?.length) return;
+
+        for (const row of data as Array<{ section: string; items: unknown[] }>) {
+          if (!Array.isArray(row.items) || row.items.length === 0) continue;
+          if (row.section === "musicos") setMusicians(sortActive(row.items as Musician[]));
+          if (row.section === "convidados") setGuests(sortActive(row.items as Guest[]));
+          if (row.section === "galeria") setGalleryItems(sortActive(row.items as GalleryMedia[]));
+          if (row.section === "patrocinadores") setSponsors(sortActive(row.items as Sponsor[]));
+        }
+      });
+  }, []);
 
   return (
     <main>
@@ -451,7 +476,7 @@ export function HomePage() {
       <section id="galeria" className="bg-paper px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeader eyebrow="Galeria" title="Fotos e vídeos preparados para crescer." text="Uma galeria moderna em formato masonry para registrar ensaios, bastidores, parceiros, vídeos e momentos do evento." />
-          <Gallery />
+          <Gallery items={galleryItems} />
         </div>
       </section>
 
@@ -505,7 +530,7 @@ export function HomePage() {
       <section id="parceiros" className="bg-paper px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeader eyebrow="Parceiros" title="Marcas que caminham com a causa." text="O patrocinador Master recebe destaque principal, e os patrocinadores parceiros aparecem em uma vitrine visual preparada para crescer." />
-          <SponsorsShowcase />
+          <SponsorsShowcase items={sponsors} />
         </div>
       </section>
 

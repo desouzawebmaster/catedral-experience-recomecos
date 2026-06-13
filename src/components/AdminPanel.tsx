@@ -105,20 +105,25 @@ export function AdminPanel() {
     return { master, parceiros };
   }, [sponsors]);
 
-  async function getToken() {
-    const { data } = await getSupabaseClient().auth.getSession();
-    return data.session?.access_token;
-  }
-
   async function loadSection<T>(section: CmsSection, setter: (items: T[]) => void) {
-    const response = await fetch(`/api/cms/${section}`, { cache: "no-store" });
-    if (!response.ok) return;
-    setter(ordered((await response.json()) as Array<T & { position: number }>) as T[]);
+    const { data, error } = await getSupabaseClient()
+      .from("cms_sections")
+      .select("items")
+      .eq("section", section)
+      .maybeSingle();
+
+    if (error) {
+      setMessage("Não foi possível carregar os dados do CMS. Verifique se a tabela cms_sections foi criada no Supabase.");
+      return;
+    }
+
+    if (Array.isArray(data?.items) && data.items.length > 0) {
+      setter(ordered(data.items as Array<T & { position: number }>) as T[]);
+    }
   }
 
   async function saveSection(section: CmsSection, items: unknown[]) {
     if (!supabaseReady) return;
-    const token = await getToken();
 
     if (section === "patrocinadores") {
       const current = items as Sponsor[];
@@ -134,43 +139,43 @@ export function AdminPanel() {
       }
     }
 
-    const response = await fetch(`/api/cms/${section}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(withPositions(items as Array<{ position: number }>))
+    const nextItems = withPositions(items as Array<{ position: number }>);
+    const { error } = await getSupabaseClient().from("cms_sections").upsert({
+      section,
+      items: nextItems,
+      updated_at: new Date().toISOString()
     });
 
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setMessage(result.error || "Não foi possível salvar.");
+    if (error) {
+      setMessage(error.message || "Não foi possível salvar no Supabase.");
       return;
     }
 
-    setMessage("Alterações salvas no JSON local do projeto.");
+    setMessage("Alterações salvas no Supabase. O site já pode carregar os novos dados.");
   }
 
   async function upload(section: CmsSection, file: File) {
-    const token = await getToken();
-    const body = new FormData();
-    body.append("file", file);
+    const safeName = file.name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9.]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .toLowerCase();
+    const path = `${section}/${Date.now()}-${safeName || "arquivo"}`;
 
-    const response = await fetch(`/api/uploads/${section}`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body
+    const { error } = await getSupabaseClient().storage.from("site-media").upload(path, file, {
+      cacheControl: "31536000",
+      upsert: true
     });
 
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setMessage(result.error || "Não foi possível enviar o arquivo.");
+    if (error) {
+      setMessage(error.message || "Não foi possível enviar o arquivo ao Supabase Storage.");
       return "";
     }
 
-    setMessage("Arquivo enviado. Clique em salvar para gravar o JSON.");
-    return result.url as string;
+    const { data } = getSupabaseClient().storage.from("site-media").getPublicUrl(path);
+    setMessage("Arquivo enviado ao Supabase Storage. Clique em salvar alterações para publicar no site.");
+    return data.publicUrl;
   }
 
   async function signIn(event: FormEvent<HTMLFormElement>) {
@@ -235,7 +240,7 @@ export function AdminPanel() {
         </div>
 
         <div className="mb-5 rounded-md border border-amber-300 bg-amber-50 p-4 text-sm font-bold leading-6 text-ink/75">
-          Este CMS salva arquivos JSON e arquivos enviados dentro do projeto. Localmente, isso funciona como persistência no repositório. Na Vercel, arquivos enviados em produção não são persistentes entre deploys; a estrutura está pronta para futura migração para Supabase Storage ou outro armazenamento externo.
+          Este CMS salva os dados no Supabase e envia arquivos para o Supabase Storage. Depois de salvar, as alterações ficam disponíveis para o site publicado na Vercel.
         </div>
 
         {message ? <p className="mb-5 rounded-md border border-ember/20 bg-white p-4 font-bold text-ink/75">{message}</p> : null}

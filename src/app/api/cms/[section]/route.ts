@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import { ensureAdmin, getDataPath, isCmsSection } from "@/lib/cms-server";
+import { createClient } from "@supabase/supabase-js";
+import { ensureAdmin, isCmsSection } from "@/lib/cms-server";
 import musicians from "@/data/musicos.json";
 import guests from "@/data/convidados.json";
 import gallery from "@/data/galeria.json";
@@ -16,17 +16,26 @@ const fallbackData = {
   patrocinadores: sponsors
 };
 
-export async function GET(_request: Request, { params }: { params: { section: string } }) {
+function supabaseFromRequest(request?: Request) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const token = request?.headers.get("authorization");
+
+  if (!url || !key) return null;
+
+  return createClient(url, key, token ? { global: { headers: { Authorization: token } } } : undefined);
+}
+
+export async function GET(request: Request, { params }: { params: { section: string } }) {
   if (!isCmsSection(params.section)) {
     return NextResponse.json({ error: "Seção inválida." }, { status: 404 });
   }
 
-  try {
-    const content = await fs.readFile(getDataPath(params.section), "utf8");
-    return NextResponse.json(JSON.parse(content));
-  } catch {
-    return NextResponse.json(fallbackData[params.section]);
-  }
+  const supabase = supabaseFromRequest(request);
+  if (!supabase) return NextResponse.json(fallbackData[params.section]);
+
+  const { data } = await supabase.from("cms_sections").select("items").eq("section", params.section).maybeSingle();
+  return NextResponse.json(Array.isArray(data?.items) && data.items.length > 0 ? data.items : fallbackData[params.section]);
 }
 
 export async function PUT(request: Request, { params }: { params: { section: string } }) {
@@ -38,18 +47,18 @@ export async function PUT(request: Request, { params }: { params: { section: str
     return NextResponse.json({ error: "Acesso restrito ao administrador." }, { status: 401 });
   }
 
-  const items = await request.json();
-
-  try {
-    await fs.writeFile(getDataPath(params.section), `${JSON.stringify(items, null, 2)}\n`, "utf8");
-    return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json(
-      {
-        error:
-          "Não foi possível salvar no disco. Em produção na Vercel, arquivos enviados e JSON locais não são persistentes; use esta estrutura localmente ou migre para Supabase Storage."
-      },
-      { status: 500 }
-    );
+  const supabase = supabaseFromRequest(request);
+  if (!supabase) {
+    return NextResponse.json({ error: "Supabase não configurado." }, { status: 500 });
   }
+
+  const items = await request.json();
+  const { error } = await supabase.from("cms_sections").upsert({
+    section: params.section,
+    items,
+    updated_at: new Date().toISOString()
+  });
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
 }

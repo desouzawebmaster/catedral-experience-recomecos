@@ -11,7 +11,8 @@ Site profissional para captacao de patrocinadores, venda de ingressos e divulgac
 - Framer Motion
 - Lucide Icons
 - Supabase Auth para login do administrador
-- CMS local por JSON para conteudo editavel
+- Supabase Database para conteudo editavel
+- Supabase Storage para imagens e videos enviados pelo admin
 - Pronto para Vercel, GitHub e dominio proprio
 
 ## Como rodar
@@ -32,9 +33,9 @@ NEXT_PUBLIC_WHATSAPP_NUMBER=5511999999999
 NEXT_PUBLIC_INSTAGRAM_URL=https://www.instagram.com/catedralexperience
 ```
 
-## Admin
+## Admin e CMS
 
-O painel `/admin` usa Supabase apenas para autenticacao. Crie manualmente o usuario `desouza.webmaster@gmail.com` em:
+O painel `/admin` usa Supabase para autenticacao, conteudo e arquivos enviados. Crie manualmente o usuario `desouza.webmaster@gmail.com` em:
 
 `Supabase > Authentication > Users`
 
@@ -45,25 +46,22 @@ Depois acesse `/admin` com este e-mail e senha. O painel permite gerenciar:
 - Galeria de fotos e videos
 - Patrocinadores
 
-Os dados ficam nos arquivos:
+Rode o SQL de `supabase/schema.sql` no SQL Editor do Supabase. Ele cria:
 
-- `src/data/musicos.json`
-- `src/data/convidados.json`
-- `src/data/galeria.json`
-- `src/data/patrocinadores.json`
+- a tabela `cms_sections`
+- o bucket público `site-media`
+- as políticas de leitura pública e escrita restrita ao administrador
+- os dados iniciais do site
 
-Uploads locais sao salvos em:
+Os arquivos JSON em `src/data` continuam existindo apenas como fallback inicial do projeto. Em producao, o site carrega primeiro os dados salvos no Supabase.
 
-- `public/uploads/musicos`
-- `public/uploads/convidados`
-- `public/uploads/galeria`
-- `public/uploads/patrocinadores`
+No Supabase, este select deve retornar 4 linhas:
 
-## Importante sobre Vercel
-
-A Vercel nao deve ser usada como armazenamento permanente de uploads feitos em tempo de execucao. Em producao, arquivos gravados pelo painel podem sumir em novos deploys ou novas instancias.
-
-Esta estrutura foi preparada para funcionar localmente e manter persistencia no repositorio. Para uso administrativo real em producao, migre os uploads para Supabase Storage, Cloudinary, S3 ou outro storage externo. Os JSONs tambem podem ser migrados futuramente para Supabase Database.
+```sql
+select section, jsonb_array_length(items) as total
+from public.cms_sections
+order by section;
+```
 
 ## Deploy na Vercel
 
