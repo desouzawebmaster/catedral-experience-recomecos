@@ -1,10 +1,13 @@
 -- Catedral Experience - Recomeços
--- CMS em Supabase Database + Supabase Storage
+-- Execute este arquivo inteiro no SQL Editor do Supabase.
+-- Ele cria a tabela usada pelo CMS e o bucket para uploads.
 
 create table if not exists public.cms_sections (
-  section text primary key check (section in ('musicos', 'convidados', 'galeria', 'patrocinadores')),
+  section text primary key,
   items jsonb not null default '[]'::jsonb,
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint cms_sections_section_check
+    check (section in ('musicos', 'convidados', 'galeria', 'patrocinadores'))
 );
 
 alter table public.cms_sections enable row level security;
@@ -39,218 +42,37 @@ for delete
 to authenticated
 using ((auth.jwt() ->> 'email') = 'desouza.webmaster@gmail.com');
 
-insert into public.cms_sections (section, items, updated_at)
-values (
-  'musicos',
-  $json$[
-    {
-      "id": "vocal",
-      "name": "Vocal",
-      "role": "Voz principal",
-      "image": "/assets/hero-singer.png",
-      "alt": "Vocalista no palco",
-      "active": true,
-      "position": 1
-    },
-    {
-      "id": "bateria",
-      "name": "Bateria",
-      "role": "Bateria",
-      "image": "/assets/hero-musician-1.png",
-      "alt": "Baterista",
-      "active": true,
-      "position": 2
-    },
-    {
-      "id": "guitarra",
-      "name": "Guitarra",
-      "role": "Guitarra",
-      "image": "/assets/hero-guitar.jpeg",
-      "alt": "Guitarrista",
-      "active": true,
-      "position": 3
-    },
-    {
-      "id": "violao",
-      "name": "Evento - Violão",
-      "role": "Violão e voz",
-      "image": "/assets/hero-violao.jpeg",
-      "alt": "Músico tocando violão",
-      "active": true,
-      "position": 4
-    },
-    {
-      "id": "teclado",
-      "name": "Teclado",
-      "role": "Teclado",
-      "image": "/assets/hero-musician-5.png",
-      "alt": "Tecladista",
-      "active": true,
-      "position": 5
-    },
-    {
-      "id": "baixo",
-      "name": "Baixo",
-      "role": "Baixo",
-      "image": "/assets/hero-bass.jpeg",
-      "alt": "Baixista",
-      "active": true,
-      "position": 6
-    }
-  ]$json$::jsonb,
-  now()
-)
-on conflict (section) do update set
-  items = case
-    when public.cms_sections.items = '[]'::jsonb then excluded.items
-    else public.cms_sections.items
-  end,
-  updated_at = now();
+insert into public.cms_sections (section, items)
+values
+  ('musicos', '[]'::jsonb),
+  ('convidados', '[]'::jsonb),
+  ('galeria', '[]'::jsonb),
+  ('patrocinadores', '[]'::jsonb)
+on conflict (section) do nothing;
 
-insert into public.cms_sections (section, items, updated_at)
-values (
-  'convidados',
-  $json$[
-    {
-      "id": "rodolfo-lauber",
-      "name": "Rodolfo Lauber",
-      "description": "Rodolfo Lauber é cantor e compositor da Banda Apogeu.",
-      "image": "/assets/guest-rodolfo-lauber.jpeg",
-      "alt": "Rodolfo Lauber cantando no palco",
-      "active": true,
-      "position": 1
-    }
-  ]$json$::jsonb,
-  now()
+insert into storage.buckets (
+  id,
+  name,
+  public,
+  file_size_limit,
+  allowed_mime_types
 )
-on conflict (section) do update set
-  items = case
-    when public.cms_sections.items = '[]'::jsonb then excluded.items
-    else public.cms_sections.items
-  end,
-  updated_at = now();
-
-insert into public.cms_sections (section, items, updated_at)
-values (
-  'galeria',
-  $json$[
-    {
-      "id": "hero",
-      "type": "image",
-      "src": "/assets/hero-image.png",
-      "title": "Banda no palco do evento",
-      "active": true,
-      "position": 1
-    },
-    {
-      "id": "vocal",
-      "type": "image",
-      "src": "/assets/hero-singer.png",
-      "title": "Voz principal",
-      "active": true,
-      "position": 2
-    },
-    {
-      "id": "rodolfo",
-      "type": "image",
-      "src": "/assets/guest-rodolfo-lauber.jpeg",
-      "title": "Convidado especial",
-      "active": true,
-      "position": 3
-    },
-    {
-      "id": "violao",
-      "type": "image",
-      "src": "/assets/hero-violao.jpeg",
-      "title": "Violão",
-      "active": true,
-      "position": 4
-    },
-    {
-      "id": "guitarra",
-      "type": "image",
-      "src": "/assets/hero-guitar.jpeg",
-      "title": "Guitarra",
-      "active": true,
-      "position": 5
-    },
-    {
-      "id": "baixo",
-      "type": "image",
-      "src": "/assets/hero-bass.jpeg",
-      "title": "Baixo",
-      "active": true,
-      "position": 6
-    },
-    {
-      "id": "studio",
-      "type": "video",
-      "src": "/assets/studio.mp4",
-      "poster": "/assets/place-1.jpeg",
-      "title": "Vídeo do espaço",
-      "active": true,
-      "position": 7
-    }
-  ]$json$::jsonb,
-  now()
-)
-on conflict (section) do update set
-  items = case
-    when public.cms_sections.items = '[]'::jsonb then excluded.items
-    else public.cms_sections.items
-  end,
-  updated_at = now();
-
-insert into public.cms_sections (section, items, updated_at)
-values (
-  'patrocinadores',
-  $json$[
-    {
-      "id": "placeholder-master",
-      "name": "Sua marca aqui",
-      "slogan": "Associe sua empresa a uma noite de impacto social.",
-      "logo": "/assets/logo-placeholder.jpg",
-      "url": "#patrocinios",
-      "instagram": "",
-      "facebook": "",
-      "whatsapp": "",
-      "tier": "master",
-      "active": true,
-      "position": 1
-    },
-    {
-      "id": "placeholder-parceiro",
-      "name": "Patrocinador Parceiro",
-      "slogan": "Visibilidade com propósito para empresas locais.",
-      "logo": "/assets/logo-placeholder.jpg",
-      "url": "#patrocinios",
-      "instagram": "",
-      "facebook": "",
-      "whatsapp": "",
-      "tier": "parceiro",
-      "active": true,
-      "position": 2
-    }
-  ]$json$::jsonb,
-  now()
-)
-on conflict (section) do update set
-  items = case
-    when public.cms_sections.items = '[]'::jsonb then excluded.items
-    else public.cms_sections.items
-  end,
-  updated_at = now();
-
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
   'site-media',
   'site-media',
   true,
   52428800,
-  array['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/webm']::text[]
+  array[
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+    'video/mp4',
+    'video/webm'
+  ]::text[]
 )
 on conflict (id) do update set
-  public = true,
+  public = excluded.public,
   file_size_limit = excluded.file_size_limit,
   allowed_mime_types = excluded.allowed_mime_types;
 
