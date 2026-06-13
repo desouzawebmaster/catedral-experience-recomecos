@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -36,8 +38,8 @@ iframe {
 }
 
 .gothic-restart {
-  font-family: "Cattedrale-Demo", "Old English Text MT", "UnifrakturMaguntia", Georgia, "Times New Roman", serif;
-  font-weight: 900;
+  font-family: "UnifrakturMaguntia", "Cattedrale-Demo", "Old English Text MT", Georgia, "Times New Roman", serif;
+  font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
 }
