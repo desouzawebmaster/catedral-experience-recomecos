@@ -244,8 +244,8 @@ function SponsorsShowcase({ items }: { items: Sponsor[] }) {
   return (
     <div className="grid gap-6">
       {master ? (
-        <a href={master.url || "#"} target={master.url?.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="grid gap-5 rounded-lg border border-gold/60 bg-ink p-6 text-white shadow-xl sm:grid-cols-[140px_1fr] sm:items-center">
-          <div className="relative h-32 w-32 overflow-hidden rounded-md bg-white">
+        <a href={master.url || "#"} target={master.url?.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="grid min-h-[220px] gap-5 rounded-lg border border-gold/60 bg-ink p-6 text-white shadow-xl sm:grid-cols-[160px_1fr] sm:items-center">
+          <div className="relative h-40 w-40 overflow-hidden rounded-md bg-white">
             <Image src={master.logo} alt={master.name} fill className="object-contain p-3" sizes="140px" />
           </div>
           <div>
@@ -550,7 +550,7 @@ export function HomePage() {
 
       <section id="parceiros" className="bg-paper px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader eyebrow="Parceiros" title="Marcas que caminham com a causa." text="O patrocinador Master recebe destaque principal, e os patrocinadores parceiros aparecem em uma vitrine visual preparada para crescer." />
+          <SectionHeader eyebrow="Parceiros" title="Marcas que caminham com a causa." text="Obrigado por fazerem parte desta causa!" />
           <SponsorsShowcase items={sponsors} />
         </div>
       </section>
