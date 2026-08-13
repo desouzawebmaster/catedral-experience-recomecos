@@ -1,8 +1,3 @@
-diff --git a/src/components/AdminPanel.tsx b/src/components/AdminPanel.tsx
-index 4f0ea4a4e5584d6be7ddbaffb9db81b240fea271..5827748ac3392915a50654ee4d97a6c0a8b773d3 100644
---- a/src/components/AdminPanel.tsx
-+++ b/src/components/AdminPanel.tsx
-@@ -1,80 +1,81 @@
  "use client";
  
  import Image from "next/image";
