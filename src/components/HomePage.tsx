@@ -496,7 +496,7 @@ export function HomePage() {
 
       <section id="galeria" className="bg-paper px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader eyebrow="Galeria" title="Fotos e vídeos preparados para crescer." text="Uma galeria moderna em formato masonry para registrar ensaios, bastidores, parceiros, vídeos e momentos do evento." />
+          <SectionHeader eyebrow="Galeria" title="Fotos e vídeos" text="Dos nossos ensaios, bastidores, parceiros, vídeos e momentos do evento." />
           <Gallery items={galleryItems} />
         </div>
       </section>
@@ -550,7 +550,7 @@ export function HomePage() {
 
       <section id="parceiros" className="bg-paper px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader eyebrow="Parceiros" title="Marcas que caminham com a causa." text="O patrocinador Master recebe destaque principal, e os patrocinadores parceiros aparecem em uma vitrine visual preparada para crescer." />
+          <SectionHeader eyebrow="Parceiros" title="Marcas que caminham com a causa." text="A generosidade fazendo música" />
           <SponsorsShowcase items={sponsors} />
         </div>
       </section>
