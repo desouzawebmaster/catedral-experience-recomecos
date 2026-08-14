@@ -496,7 +496,7 @@ export function HomePage() {
 
       <section id="galeria" className="bg-paper px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionHeader eyebrow="Galeria" title="Fotos e vídeos preparados para crescer." text="Uma galeria moderna em formato masonry para registrar ensaios, bastidores, parceiros, vídeos e momentos do evento." />
+          <SectionHeader eyebrow="Galeria" title="Fotos e vídeos" text="dos nossos ensaios, bastidores, parceiros, vídeos e momentos do evento." />
           <Gallery items={galleryItems} />
         </div>
       </section>
